@@ -25,6 +25,7 @@ def write_to_s3(bucket, key, val):
     print(f'invocation time: {inv_time}')
     return
 
+
 def read_from_s3(bucket):
     resp = s3.get_object(Bucket=bucket, )
 

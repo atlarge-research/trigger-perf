@@ -41,3 +41,5 @@ def main():
 if __name__ == "__main__":
 
     main()
+
+# curl -X POST -H "Content-Type: application/json" -d '{"writes": "value69", "keys": "value70"}' https://opw4dj08ul.execute-api.eu-north-1.amazonaws.com/default/send-lambda

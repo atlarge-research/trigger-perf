@@ -2,13 +2,46 @@ import string
 import random
 import boto3
 import time
+import subprocess
+
+import ingest
 
 # input => experiment, database, conc, file sizes
 s3 = boto3.client('s3')
-# output => relevant vizs, logs
-def ingest_inputs(): # take in config metrics from the yam file
+
+# Configs
+data_store = ""
+num_writers = 0
+num_keys = 0
+key_size = 0
+value_size = 0
+num_readers = 0
+num_iters = 5
+
+
+def ingest_inputs(file): # take in config metrics from the yam file
+    test_configs = ingest.read_config(file)
+    data_store = test_configs['data_store']
+    num_writers = test_configs['num_writers']
+    num_keys = test_configs['num_keys']
+    key_size = test_configs['key_size']
+    value_size = test_configs['value_size']
+    num_readers = test_configs['num_readers']
     pass
 
+def run_aws_command(cmd):
+    try:
+        result = subprocess.run(cmd, check=True, text=True, capture_output=True)
+        return  result.stdout.strip()
+    except subprocess.CalledProcessError as err:
+        print(f"Command failed: {cmd}, Error: {err}")
+        return None
+
+
+
+def setup_services(): # Set up lambda functions & data store
+
+    pass
 
 def generate_rand_bytes(size):
     return str(bytes(random.choices(range(256), k=size)))

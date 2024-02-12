@@ -1,0 +1,17 @@
+
+## other inputs: "etcd", "dynamodb", "s3Express", "Aurora"
+data_store: "s3"
+aws_acc_id: "471112959817"
+
+num_writers: 1
+
+key:
+  num: 1
+  size: 10 #bytes
+
+value:
+  size: 100 #bytes
+  
+num_readers: 1
+
+num_iters: 5

@@ -5,6 +5,7 @@ import time
 import subprocess
 
 import ingest
+from aws import *
 
 # input => experiment, database, conc, file sizes
 s3 = boto3.client('s3')
@@ -29,17 +30,26 @@ def ingest_inputs(file): # take in config metrics from the yam file
     num_readers = test_configs['num_readers']
     pass
 
-def run_aws_command(cmd):
-    try:
-        result = subprocess.run(cmd, check=True, text=True, capture_output=True)
-        return  result.stdout.strip()
-    except subprocess.CalledProcessError as err:
-        print(f"Command failed: {cmd}, Error: {err}")
-        return None
+
 
 
 
 def setup_services(): # Set up lambda functions & data store
+
+    print("## Setup process started")
+    # Setup Role ###TBD
+
+    # Initial lambda setup
+    create_lambda_function(acc_id, "initial-lmd")
+
+    # Write lambda setup
+    create_lambda_function(acc_id, "write-lmd")
+
+    # Datastore setup
+
+    # Read lambda setup
+    create_lambda_function(acc_id, "read-lmd")
+
 
     pass
 
@@ -59,8 +69,7 @@ def write_to_s3(bucket, key, val):
     return
 
 
-def read_from_s3(bucket):
-    resp = s3.get_object(Bucket=bucket, )
+
 
 
 def main():

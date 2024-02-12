@@ -1,7 +1,7 @@
 import yaml
 
 def read_config(file):
-    with open('test.yaml', 'r') as file:
+    with open('config.yaml', 'r') as file:
         yload = yaml.safe_load(file)
 
     param1 = yload['rest']['url']

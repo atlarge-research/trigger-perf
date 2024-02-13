@@ -1,7 +1,7 @@
+####### arn:aws:iam::471112959817:role/myLambdaRole
+
+
 ####### Lambda create:
-aws lambda create-function --function-name testy --runtime python3.8 --handler testy.lambda_handler --zip-file "fileb://testy.zip"  --role arn:aws:iam::471112959817:role/myLambdaRole
-
-
 aws lambda create-function \
     --function-name testy \
     --runtime python3.8 \
@@ -9,7 +9,22 @@ aws lambda create-function \
     --zip-file "fileb://testy.zip" \
     --role arn:aws:iam::471112959817:role/myLambdaRole
 
+
 ####### S3 bucket create:
 aws s3api create-bucket \
     --bucket test-buckxyz \
     --create-bucket-configuration LocationConstraint=eu-north-1
+
+
+
+####### Lambda Invoke
+aws lambda invoke \
+    --function-name write-lmd \
+    --invocation-type Event \
+    --cli-binary-format raw-in-base64-out \
+    --payload '{ "name": "Bob" }', \
+    --region eu-north-1 response.json
+
+
+
+

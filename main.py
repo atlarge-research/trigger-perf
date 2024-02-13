@@ -5,7 +5,8 @@ import time
 import subprocess
 
 import ingest
-from aws import *
+from aws.aws import *
+from drivers.s3_driver import *
 
 # input => experiment, database, conc, file sizes
 s3 = boto3.client('s3')
@@ -34,7 +35,7 @@ def ingest_inputs(file): # take in config metrics from the yam file
 
 
 
-def setup_services(): # Set up lambda functions & data store
+def setup_services(acc_id): # Set up lambda functions & data store
 
     print("## Setup process started")
     # Setup Role ###TBD
@@ -46,6 +47,7 @@ def setup_services(): # Set up lambda functions & data store
     create_lambda_function(acc_id, "write-lmd")
 
     # Datastore setup
+    create_s3_bucket()
 
     # Read lambda setup
     create_lambda_function(acc_id, "read-lmd")
@@ -75,8 +77,8 @@ def write_to_s3(bucket, key, val):
 def main():
     key = generate_rand_bytes(5)
     val = generate_rand_bytes(50)
-
-    write_to_s3('buczy-bucket',key,val)
+    acc_id = 471112959817
+    setup_services(acc_id)
 
     return
 

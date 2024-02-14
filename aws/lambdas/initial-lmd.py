@@ -7,10 +7,12 @@ def invoker_function(key, data, r):
         payload = [key, data]
         
         response = client.invoke(
-        FunctionName='send-lambda',
+        FunctionName='write-lmd',
         InvocationType='Event',
         Payload=json.dumps(payload)
         )
+        if response.get('FunctionError'):
+            print(f"Error invoking write-lmd: {response.get('FunctionError')}")
 
 def generate_rand_bytes(size):
     return str(bytes(random.choices(range(256), k=size)))
@@ -18,7 +20,9 @@ def generate_rand_bytes(size):
 def lambda_handler(event, context):
     
     # Get w-k-r input
-    jload = json.loads(event['body'])
+    print('EVENT: ', event)
+    
+    jload = event
     writes = jload.get('writes')
     keys = jload.get('keys')
     reads = jload.get('reads') # can add key & data size
@@ -26,13 +30,12 @@ def lambda_handler(event, context):
     print(input)
 
     # Key and data generation
-    for i in range(0,keys):
+    for i in range(0,5): # 5 different keys
         key = generate_rand_bytes(10) # key size
         data = generate_rand_bytes(100) # data size
-
-    # Invoke send/write function
-    for i in range(0,keys): 
-        invoker_function(key,data,reads)
+        # Invoke send/write function
+        for i in range(0,5): # writing the same key 5 times
+            invoker_function(key,data,reads)
 
     return {
         'statusCode': 200,

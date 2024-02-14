@@ -1,5 +1,5 @@
 import subprocess
-
+import base64
 
 
  ## id to be replaced
@@ -11,7 +11,7 @@ def run_command(cmd):
         return  True, result.stdout.strip()
     except subprocess.CalledProcessError as err:
         print(f"Command failed: {cmd}, Error: {err}")
-        return False, None
+        return False, err.output
     
 acc_id = 471112959817
 fn_name = "testy"
@@ -43,11 +43,13 @@ Used to Invoke the Initial lambda function
 payload: {w-k-r}
 '''
 def lambda_invoke(fn_name, payload): # payload requires bas64 encoding
+    enc_payload = base64.b64encode(payload.encode('utf-8')).decode('utf-8')
+    
     lmd_invoke_cmd = [ 'aws', 'lambda', 'invoke', \
                       '--function-name', fn_name, \
                       '--invocation-type', 'Event', \
-                      '--cli-binary-format', 'raw-in-base64-out', \
-                      '--payload', payload, \
+                    #   '--cli-binary-format', 'raw-in-base64-out', \
+                      '--payload', enc_payload, \
                       '--region', 'eu-north-1', 'response.json' \
                     ]
     success, output = run_command(lmd_invoke_cmd)
@@ -56,7 +58,6 @@ def lambda_invoke(fn_name, payload): # payload requires bas64 encoding
         pass
     else:
         print(f"ERROR: Lambda function {fn_name} invocation failed")
-        print(output)
     return 0
 
 

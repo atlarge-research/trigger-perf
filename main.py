@@ -1,10 +1,8 @@
-import string
-import random
 import boto3
 import time
 import subprocess
 
-import ingest
+from utils.utils import *
 from aws.aws import *
 from drivers.s3_driver import *
 
@@ -22,7 +20,7 @@ num_iters = 5
 
 
 def ingest_inputs(file): # take in config metrics from the yam file
-    test_configs = ingest.read_config(file)
+    test_configs = read_config(file)
     data_store = test_configs['data_store']
     num_writers = test_configs['num_writers']
     num_keys = test_configs['num_keys']
@@ -33,52 +31,12 @@ def ingest_inputs(file): # take in config metrics from the yam file
 
 
 
-
-
-def setup_services(acc_id): # Set up lambda functions & data store
-
-    print("## Setup process started")
-    # Setup Role ###TBD
-
-    # Initial lambda setup
-    create_lambda_function(acc_id, "initial-lmd")
-
-    # Write lambda setup
-    create_lambda_function(acc_id, "write-lmd")
-
-    # Datastore setup
-    create_s3_bucket()
-
-    # Read lambda setup
-    create_lambda_function(acc_id, "read-lmd")
-
-
-    pass
-
-def generate_rand_bytes(size):
-    return str(bytes(random.choices(range(256), k=size)))
-
-def write_to_s3(bucket, key, val):
-    
-    inv_time = str(time.perf_counter())
-    try:
-        s3.put_object(Key=key, Body=val, Bucket=bucket, Metadata={'invocation-time': inv_time})
-        print(f"Successfully wrote key-value pair to S3: {key} -> {val}\n")
-    except Exception as e:
-        print(f"error writing to s3: {e}")
-
-    print(f'invocation time: {inv_time}')
-    return
-
-
-
-
-
 def main():
     key = generate_rand_bytes(5)
     val = generate_rand_bytes(50)
     acc_id = 471112959817
-    setup_services(acc_id)
+    payload = '{"writes": "1", "keys": "2", "reads": "3" }'
+    lambda_invoke('initial-lmd', payload)
 
     return
 

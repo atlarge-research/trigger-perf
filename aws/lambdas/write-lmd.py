@@ -12,7 +12,7 @@ def lambda_handler(event, context):
     data_to_write = event[1]
 
     s3_client = boto3.client('s3')
-    s3_bucket = 'buczy-bucket'
+    s3_bucket = 'test-buck-xyz'
     s3_put_time = time.time()
     s3_client.put_object(
         Bucket=s3_bucket,

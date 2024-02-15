@@ -27,4 +27,25 @@ aws lambda invoke \
 
 
 
+####### s3-lambda invoke permission
+aws lambda add-permission \
+--function-name read-lmd \
+--principal s3.amazonaws.com \
+--statement-id s3invoke \
+--action "lambda:InvokeFunction" \
+--source-arn arn:aws:s3:::test-buck-xyz \
+--source-account 471112959817
 
+
+
+####### s3-lambda event notification (trigger)
+aws s3api put-bucket-notification-configuration \
+--bucket test-buck-xyz \
+--notification-configuration '{
+  "LambdaFunctionConfigurations": [
+    {
+      "LambdaFunctionArn": "arn:aws:lambda:eu-north-1:471112959817:function:read-lmd",
+      "Events": ["s3:ObjectCreated:*"]
+    }                                 
+  ]
+}'

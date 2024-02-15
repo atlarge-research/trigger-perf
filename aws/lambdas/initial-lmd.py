@@ -21,7 +21,6 @@ def lambda_handler(event, context):
     
     # Get w-k-r input
     print('EVENT: ', event)
-    
     jload = event
     writes = jload.get('writes')
     keys = jload.get('keys')

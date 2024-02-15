@@ -1,12 +1,16 @@
 import time
 import boto3
 import json
+import logging
 
 # need to enable versioning to gaurantee a notification for every event
 def lambda_handler(event, context):
 
     # writing to s3
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
     recv_time = time.time()
+    logger.info(f"Write Lambda execution started at: {recv_time}")
 
     file_key = event[0]
     data_to_write = event[1]
@@ -20,6 +24,7 @@ def lambda_handler(event, context):
         Body=json.dumps(data_to_write),
         ContentType='application/json'
     )
+    logger.info(f"Write Lambda s3 put time: {s3_put_time}")
     print("## Event")
     print("Event:", event)
 

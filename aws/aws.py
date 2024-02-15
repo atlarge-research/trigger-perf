@@ -26,7 +26,8 @@ def create_lambda_function(acc_id, fn_name):
                          '--runtime', runtime, \
                          '--handler', handler, \
                          '--zip-file', zip_file, \
-                         '--role', role_arn \
+                         '--role', role_arn, \
+                         '--logging-config', 'LogFormat=JSON' \
                         ]
     
     success, output = run_command(create_lambda_cmd)

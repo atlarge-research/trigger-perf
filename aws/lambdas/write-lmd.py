@@ -10,11 +10,11 @@ def lambda_handler(event, context):
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     recv_time = time.time()
-    logger.info(f"Write Lambda execution started at: {recv_time}")
 
     file_key = event[0]
     data_to_write = event[1]
-
+    ksize = 0
+    vsize = 0
     s3_client = boto3.client('s3')
     s3_bucket = 'test-buck-xyz'
     s3_put_time = time.time()
@@ -24,18 +24,13 @@ def lambda_handler(event, context):
         Body=json.dumps(data_to_write),
         ContentType='application/json'
     )
-    logger.info(f"Write Lambda s3 put time: {s3_put_time}")
-    print("## Event")
-    print("Event:", event)
-
-    # jload = json.loads(event['body'])
-    # writes = jload.get('writes')
-    # keys = jload.get('keys')
-    # print("## PARAMS ADDED")
-    # print(writes, keys)
-    print(f"Data writen to S3")
-    print(f"lambda_execution_start_time: {recv_time}")
-    print(f"s3_put_time: {s3_put_time}")
+    logger.info(f"Write Lambda execution started at: {recv_time}, \
+                Write-lmd s3 put time: {s3_put_time}, Key: {file_key}, KeySize: {ksize}, ValSize: {vsize}")
+    
+    # print("Event:", event)
+    # print(f"Data writen to S3")
+    # print(f"lambda_execution_start_time: {recv_time}")
+    # print(f"s3_put_time: {s3_put_time}")
 
 
     return {

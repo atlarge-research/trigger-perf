@@ -1,5 +1,7 @@
 import subprocess
 import base64
+import boto3
+import time
 
 
  ## id to be replaced
@@ -62,8 +64,49 @@ def lambda_invoke(fn_name, payload): # payload requires bas64 encoding
     return 0
 
 
-# if __name__ == "__main__":
-#     acc_id = 471112959817
-#     fn_name = "write-lmd"
-#     payload = '{"name": "Bob"}'
-#     lambda_invoke(fn_name, payload)
+
+
+def get_lambda_logs(log_grp_name, log_stream_name, start_time):
+
+    cld_watch_logs = boto3.client('logs')
+
+    # Get all log streams within the specified log group
+    log_streams_response = cld_watch_logs.describe_log_streams(
+        logGroupName=log_grp_name,
+        orderBy='LastEventTime',
+        descending=True,
+        limit=50 
+    )
+    # print(log_streams_response)
+    for log_stream in log_streams_response['logStreams']:
+        log_stream_name = log_stream['logStreamName']
+        # Retrieve logs from CloudWatch Logs
+        response = cld_watch_logs.get_log_events(
+            logGroupName=log_grp_name,
+            logStreamName=log_stream_name,
+            startTime=start_time
+        )
+        print(response)
+        extract_from_logs(response)
+        break
+    return response
+
+
+def extract_from_logs(response): # exec start ts, ds put ts, Key, key size & val size
+    for event in response.get('events', []):
+            # Check if the log message contains "INFO"
+            if 'Write Lambda execution started at:' in event.get('message', ''):
+                print(f"*** Extracted *** \n Log Stream: {log_stream_name}, Log Timestamp: {event['timestamp']}, Message: {event['message']}")
+
+
+
+if __name__ == "__main__":
+    acc_id = 471112959817
+    # fn_name = "write-lmd"
+    # payload = '{"name": "Bob"}'
+    # lambda_invoke(fn_name, payload)
+    start_time = int((time.time() - 3600) * 1000)
+    end_time = int(time.time() * 1000)
+    log_group_name = '/aws/lambda/write-lmd'
+    log_stream_name = '2024/02/19/[$LATEST]36e2a2ef15d543758c428378e5aebe29'
+    get_lambda_logs(log_group_name, log_stream_name, start_time)

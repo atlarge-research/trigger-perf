@@ -24,7 +24,9 @@ def lambda_handler(event, context):
         Body=json.dumps(data_to_write),
         ContentType='application/json'
     )
-    logger.info(f"Write Lambda execution started at: {recv_time}, \
+    
+    # TBE = to be extracted
+    logger.info(f"TBE , Write Lambda execution started at: {recv_time}, \ 
                 Write-lmd s3 put time: {s3_put_time}, Key: {file_key}, KeySize: {ksize}, ValSize: {vsize}")
     
     # print("Event:", event)

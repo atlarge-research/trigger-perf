@@ -1,7 +1,7 @@
 
 ## other inputs: "etcd", "dynamodb", "s3Express", "Aurora"
 data_store: "s3"
-aws_acc_id: "471112959817"
+aws_acc_id: 471112959817
 
 num_writers: 1
 

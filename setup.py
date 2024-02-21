@@ -1,4 +1,4 @@
-import utils.utils as utils
+from utils.utils import * 
 from aws.aws import *
 from drivers.s3_driver import *
 
@@ -26,7 +26,8 @@ def setup_services(acc_id): # Set up lambda functions & data store
     pass
 
 def main():
-    
+    test_configs = read_config('config.yaml')
+    acc_id = test_configs['aws_acc_id']
     acc_id = 471112959817
     setup_services(acc_id)
 

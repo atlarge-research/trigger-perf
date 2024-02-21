@@ -3,11 +3,10 @@ import base64
 import boto3
 import time
 import json
+import csv
 
 
- ## id to be replaced
-
-
+## id to be replaced
 def run_command(cmd):
     try:
         result = subprocess.run(cmd, check=True, text=True, capture_output=True)
@@ -65,12 +64,25 @@ def lambda_invoke(fn_name, payload): # payload requires bas64 encoding
     return 0
 
 
+'''
+Creates & writes to a csv file 
+'''
+def write_to_csv(output_file_path, logs):
+    with open(output_file_path, mode='w', newline='') as csv_file:
+        fieldnames = logs[0].keys() if logs else []
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(logs)
+       
 
-
-def get_lambda_logs(log_grp_name, start_time):
+'''
+Get all lambda function logs for the given timestamp
+'''
+def get_lambda_logs(lmd_fn, start_time):
 
     cld_watch_logs = boto3.client('logs')
-    all_results = []
+    log_grp_name = f"/aws/lambda/{lmd_fn}"
+    res_logs = []
     # Get all log streams within the specified log group
     log_streams_response = cld_watch_logs.describe_log_streams(
         logGroupName=log_grp_name,
@@ -78,94 +90,43 @@ def get_lambda_logs(log_grp_name, start_time):
         descending=True,
         limit=50 
     )
-    for log_stream in log_streams_response['logStreams']:
-        log_stream_name = log_stream['logStreamName']
-        # Retrieve logs from CloudWatch Logs
-        query = f'''
-        fields @timestamp, @message
-        | filter @timestamp >= {start_time}
-        | filter @logStream = '{log_stream_name}'
-        | filter @message like /TBE/
-        '''
-        query_results = cld_watch_logs.start_query(
-            logGroupName=log_grp_name,
-            startTime=int(start_time / 1000),  # Convert to seconds for CloudWatch Logs Insights
-            endTime=int(time.time()),  # Current time
-            queryString=query,
-            limit=100  
-        )
-        # Retrieve the query ID
-        query_id = query_results['queryId']
-        print(query_id)
-        while True: # poll to check if query is completed
-            query_status = cld_watch_logs.get_query_results(queryId = query_id)
-            print(query_status)
-            if query_status == "Complete":
-                break
-            elif query_status == "Failed":
-                print("ERROR: Query failed")
-            print("sleeping")
-            
-            
+    # Query to get all logs after timestamp from log group
+    query = f'''
+    fields @timestamp, @message
+    | filter @timestamp >= {start_time}
+    | filter @message like /TBE/
+    '''
+    query_results = cld_watch_logs.start_query(
+        logGroupName=log_grp_name,
+        startTime=int(start_time / 1000),  # Convert to seconds for CloudWatch Logs Insights
+        endTime=int(time.time()),  # Current time
+        queryString=query,
+        limit=100  
+    )
 
-        for result in query_status['results']:
-            time_stamp = int(result[0]['value'])
-            message = result[1]['value']
-            # print(f"time_stamp: {time_stamp}, message: {message}")
-            log_result = {
-                'log_stream': log_stream_name,
-                'timestamp': time_stamp,
-                'message': message
-            }
-            all_results.append(log_result)
-
-        print(json.dumps(all_results, indent=2))
-        # if query_results['status'] == "Complete":
-        #     for result in query_results['results']:
-        #         timestamp = int(result[0]['value'])
-        #         message = result[1]['value']
-        #         print(f"Log Stream: {log_stream_name}, Timestamp: {timestamp}, Message: {message}")
-        # else:
-        #     print(f"Error executing query for log stream {log_stream_name}: {query_results.get('error_message')}")
-
+    # Retrieve the query ID
+    query_id = query_results['queryId']
+    while True: # poll to check if query is completed
+        query_status = cld_watch_logs.get_query_results(queryId = query_id)
+        # print(f"Query Status: {query_status}\n")
+        if query_status['status'] == "Complete":
+            break
+        elif query_status['status'] == "Failed":
+            print("ERROR: Query failed")
+            break
+        # print("sleeping....")
+        time.sleep(1)
         
-        # print(query_results)
-        break
-    return 0
+    for result in query_status.get('results',[]):
+        # print("RESULT\n")
+        log_value = result[1]['value']
+        lv_json = json.loads(log_value)
+        message = lv_json['message']
+        msg_json = json.loads(message)
+        res_logs.append(msg_json)
 
-
-####################################
-# def get_lambda_logs(log_grp_name, start_time):
-
-#     cld_watch_logs = boto3.client('logs')
-
-#     # Get all log streams within the specified log group
-#     log_streams_response = cld_watch_logs.describe_log_streams(
-#         logGroupName=log_grp_name,
-#         orderBy='LastEventTime',
-#         descending=True,
-#         limit=50 
-#     )
-#     # print(log_streams_response)
-#     for log_stream in log_streams_response['logStreams']:
-#         log_stream_name = log_stream['logStreamName']
-#         # Retrieve logs from CloudWatch Logs
-#         response = cld_watch_logs.get_log_events(
-#             logGroupName=log_grp_name,
-#             logStreamName=log_stream_name,
-#             startTime=start_time
-#         )
-#         print(response)
-#         extract_from_logs(response)
-#         break
-#     return response
-
-
-# def extract_from_logs(response): # exec start ts, ds put ts, Key, key size & val size
-#     for event in response.get('events', []):
-#             # Check if the log message contains "INFO"
-#             if 'TBE' in event.get('message', ''):
-#                 print(f"*** Extracted *** \n Log Timestamp: {event['timestamp']}, Message: {event['message']}")
+    write_to_csv(f"../logs/{lmd_fn}_logs.csv", res_logs)
+    return res_logs
 
 
 if __name__ == "__main__":
@@ -175,5 +136,13 @@ if __name__ == "__main__":
     # lambda_invoke(fn_name, payload)
     start_time = int((time.time() - 3600) * 1000)
     end_time = int(time.time() * 1000)
-    log_group_name = '/aws/lambda/write-lmd'
-    get_lambda_logs(log_group_name, start_time)
+    lmd_fn = "write-lmd"
+    get_lambda_logs(lmd_fn, start_time)
+
+
+# query = f'''
+# fields @timestamp, @message
+# | filter @timestamp >= {start_time}
+# | filter @logStream = '{log_stream_name}'
+# | filter @message like /TBE/
+# '''

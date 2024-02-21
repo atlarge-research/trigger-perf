@@ -2,9 +2,9 @@ import boto3
 import json
 import random
 
-def invoker_function(key, data, r):
+def invoker_function(key, data, r, e_id):
         client = boto3.client('lambda')
-        payload = [key, data]
+        payload = [key, data, e_id]
         
         response = client.invoke(
         FunctionName='write-lmd',
@@ -16,6 +16,14 @@ def invoker_function(key, data, r):
 
 def generate_rand_bytes(size):
     return str(bytes(random.choices(range(256), k=size)))
+
+
+event_id_counter = 0
+def gen_event_id():
+    global event_id_counter
+    event_id_counter += 1 
+    return event_id_counter
+
 
 def lambda_handler(event, context):
     
@@ -32,9 +40,10 @@ def lambda_handler(event, context):
     for i in range(0,5): # 5 different keys
         key = generate_rand_bytes(10) # key size
         data = generate_rand_bytes(100) # data size
+        e_id = event_id_counter()
         # Invoke send/write function
-        for i in range(0,5): # writing the same key 5 times
-            invoker_function(key,data,reads)
+        # for i in range(0,5): # writing the same key 5 times
+        invoker_function(key,data,reads,e_id)
 
     return {
         'statusCode': 200,

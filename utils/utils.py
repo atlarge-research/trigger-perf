@@ -12,6 +12,8 @@ def generate_rand_bytes(size):
     return str(bytes(random.choices(range(256), k=size)))
 
 
+
+
 def main():
     read_config('test.yaml')
 

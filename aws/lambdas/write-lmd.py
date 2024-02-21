@@ -2,6 +2,12 @@ import time
 import boto3
 import json
 import logging
+import sys
+
+
+def get_size(data):
+    size = sys.getsizeof(data)
+    return size
 
 # need to enable versioning to gaurantee a notification for every event
 def lambda_handler(event, context):
@@ -13,27 +19,33 @@ def lambda_handler(event, context):
 
     file_key = event[0]
     data_to_write = event[1]
-    ksize = 0
-    vsize = 0
+    e_id = event[3]
+    ksize = get_size(file_key)
+    vsize = get_size(data_to_write)
     s3_client = boto3.client('s3')
     s3_bucket = 'test-buck-xyz'
+    metadata = {'e_id': e_id}
     s3_put_time = time.time()
     s3_client.put_object(
         Bucket=s3_bucket,
         Key=file_key,
         Body=json.dumps(data_to_write),
+        Metadata=metadata,
         ContentType='application/json'
     )
     
     # TBE = to be extracted
-    logger.info(f"TBE , Write Lambda execution started at: {recv_time}, \ 
-                Write-lmd s3 put time: {s3_put_time}, Key: {file_key}, KeySize: {ksize}, ValSize: {vsize}")
-    
-    # print("Event:", event)
-    # print(f"Data writen to S3")
-    # print(f"lambda_execution_start_time: {recv_time}")
-    # print(f"s3_put_time: {s3_put_time}")
-
+    log_data = {
+        'e_id': e_id,
+        'event': 'TBE',
+        'execution_start_time': recv_time,
+        's3_put_time': s3_put_time,
+        'key': file_key,
+        'key_size': ksize,
+        'value_size': vsize
+    }
+    # logger.info(f"TBE , Write Lambda execution started at: {recv_time}, Write-lmd s3 put time: {s3_put_time}, Key: {file_key}, KeySize: {ksize}, ValSize: {vsize}")
+    logger.info(json.dumps(log_data))
 
     return {
         'statusCode': 200,

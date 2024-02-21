@@ -36,7 +36,19 @@ def main():
     val = generate_rand_bytes(50)
     acc_id = 471112959817
     payload = '{"writes": "1", "keys": "2", "reads": "3" }'
+
+    # Invokes the Initial lmd 
     lambda_invoke('initial-lmd', payload)
+
+    # Create a SNS notification to indicate initial-lmd completion
+
+
+    # Sleeping for full chain to complete
+    time.sleep(5)
+
+    # Get the lambda logs
+    get_lambda_logs('write-lmd')
+    get_lambda_logs('read-lmd')
 
     return
 

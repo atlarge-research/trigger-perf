@@ -13,8 +13,9 @@ def read_config(file_path):
     return yload
 # Load Configs
 test_configs = read_config('config.yaml')
-
+run_id = gen_run_id()
 payload = {
+    "run_id": run_id,
     "data_store": test_configs['data_store'],
     "num_keys": test_configs['key']['num'],
     "ksize_start": test_configs['key']['size_start'],
@@ -30,9 +31,8 @@ payload = {
 def main(payload):
 
     run_start_time = time.time()
-    # payload = '{"writes": "1", "keys": "2", "reads": "3" }'
+
     # Invokes the Initial lmd 
-    
     lambda_invoke('initial-lmd', payload)
 
     # Create a SNS notification to indicate initial-lmd completion
@@ -59,7 +59,5 @@ if __name__ == "__main__":
 
 
 ##Todo
-    # csv to plot inputs
-    # intial-lmd logic to handle key range inputs
-    # Config ingest
-    # Run test based on configs given
+    # run_id prop in initial and write lmd
+    # function to select relevant e_ids

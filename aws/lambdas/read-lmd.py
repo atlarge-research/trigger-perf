@@ -1,29 +1,37 @@
 import time
 import json
 import boto3
-import logger
+import logging
+
+def get_size(input_string):
+    # Calculate the size of the input string in bytes
+    string_bytes = input_string.encode('latin-1')  # Encode string to bytes
+    size_in_bytes = len(string_bytes)
+    return size_in_bytes
 
 def lambda_handler(event, context):
 
     ## After s3 trigger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    print('XAR-ID\n')
+    print(event['Records'][0]['responseElements']['x-amz-request-id'])
     readfn_start_time = time.time()
     s3_event = event['Records'][0]['s3']
     bucket_name = s3_event['bucket']['name']
     object_key = s3_event['object']['key']
-    ksize, vsize = 0, 0 # write logic to get sizes
+    xar_id = event['Records'][0]['responseElements']['x-amz-request-id']
+    
+    ksize = 0
+    vsize = 0
 
-    # Get the token from the S3 object metadata
-    s3 = boto3.client('s3')
-    response = s3.head_object(Bucket=bucket_name, Key=object_key)
-    e_id = response['Metadata'].get('e_id')
-
-    print(f"Lambda function triggered by S3 event")
-    print(f"Bucket: {bucket_name}")
-    print(f"Read start time: {readfn_start_time}")
+    # time.sleep(5)
     log_data = {
-        'e_id': e_id,
-        'event': 'TBE',
-        'readfn_exec_start_time': readfn_start_time,
+        'xar_id': xar_id,
+        'event': 'READ',
+        'exec_start_time': readfn_start_time,
+        'put_time': 0,
         'key': object_key,
         'key_size': ksize,
         'value_size': vsize
@@ -32,6 +40,6 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'body': 'Lambda executed successfully!',
-        'lambda_execution_start_time': readfn_start_time
+        'body': 'Lambda executed successfully!'
+
     }

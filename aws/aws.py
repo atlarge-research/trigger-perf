@@ -4,6 +4,7 @@ import boto3
 import time
 import json
 import csv
+import os
 
 
 ## id to be replaced
@@ -46,6 +47,10 @@ Used to Invoke the Initial lambda function
 payload: {w-k-r}
 '''
 def lambda_invoke(fn_name, payload): # payload requires bas64 encoding
+    
+    if isinstance(payload, dict):
+        payload = json.dumps(payload)
+
     enc_payload = base64.b64encode(payload.encode('utf-8')).decode('utf-8')
     
     lmd_invoke_cmd = [ 'aws', 'lambda', 'invoke', \
@@ -94,11 +99,11 @@ def get_lambda_logs(lmd_fn, start_time):
     query = f'''
     fields @timestamp, @message
     | filter @timestamp >= {start_time}
-    | filter @message like /TBE/
+    | filter @message like /xar_id/
     '''
     query_results = cld_watch_logs.start_query(
         logGroupName=log_grp_name,
-        startTime=int(start_time / 1000),  # Convert to seconds for CloudWatch Logs Insights
+        startTime=int(start_time/1000),  # Convert to seconds for CloudWatch Logs Insights
         endTime=int(time.time()),  # Current time
         queryString=query,
         limit=100  
@@ -124,21 +129,24 @@ def get_lambda_logs(lmd_fn, start_time):
         message = lv_json['message']
         msg_json = json.loads(message)
         res_logs.append(msg_json)
+    # print(res_logs)
 
-    write_to_csv(f"../logs/{lmd_fn}_logs.csv", res_logs)
+    write_to_csv(f"logs/{lmd_fn}_logs.csv", res_logs)
+    # print(res_logs)
     return res_logs
 
 
-if __name__ == "__main__":
-    acc_id = 471112959817
-    # fn_name = "write-lmd"
-    # payload = '{"name": "Bob"}'
-    # lambda_invoke(fn_name, payload)
-    start_time = int((time.time() - 3600) * 1000)
-    end_time = int(time.time() * 1000)
-    lmd_fn = "write-lmd"
-    get_lambda_logs(lmd_fn, start_time)
 
+# if __name__ == "__main__":
+#     acc_id = 471112959817
+#     # fn_name = "write-lmd"
+#     # payload = '{"name": "Bob"}'
+#     # lambda_invoke(fn_name, payload)
+#     # start_time = int((time.time() - 3600) * 1000)
+#     # end_time = int(time.time() * 1000)
+#     lmd_fn = "write-lmd"
+
+    # get_lambda_logs(lmd_fn, start_time)
 
 # query = f'''
 # fields @timestamp, @message

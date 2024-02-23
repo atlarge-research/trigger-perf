@@ -3,15 +3,15 @@
 data_store: "s3"
 aws_acc_id: 471112959817
 
-num_writers: 1
-
 key:
-  num: 1
-  size: 10 #bytes
+  num: "1"
+  size_start: "10" #bytes
+  size_end: "20" #bytes
+  jumps: "2" 
 
 value:
-  size: 100 #bytes
+  size: "100" #bytes
   
-num_readers: 1
+num_readers: "1"
 
-num_iters: 5
+num_iters: "5"

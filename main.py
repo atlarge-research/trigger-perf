@@ -31,7 +31,9 @@ payload = {
 def main(payload):
 
     run_start_time = time.time()
+    # print(f"RUN START_TIME: {run_start_time}\n")
 
+    time.sleep(3)
     # Invokes the Initial lmd 
     lambda_invoke('initial-lmd', payload)
 
@@ -39,13 +41,15 @@ def main(payload):
 
 
     # Sleeping for full chain to complete
-    time.sleep(10)
+    time.sleep(75)
 
     # Get the lambda logs
-    get_lambda_logs("write-lmd", run_start_time)
-    get_lambda_logs("read-lmd", run_start_time)
+    print(f"RUN ID: {run_id}")
+    get_lambda_logs("write-lmd", run_start_time, run_id)
+    time.sleep(75)
+    get_lambda_logs("read-lmd", run_start_time, run_id)
     
-    time.sleep(5)
+    # time.sleep(5)
     # latencies = calc_latency("logs/write-lmd_logs.csv", "logs/read-lmd_logs.csv")
     
     

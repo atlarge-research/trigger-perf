@@ -83,24 +83,26 @@ def write_to_csv(output_file_path, logs):
 '''
 Get all lambda function logs for the given timestamp
 '''
-def get_lambda_logs(lmd_fn, start_time):
+def get_lambda_logs(lmd_fn, start_time, run_id):
 
     cld_watch_logs = boto3.client('logs')
     log_grp_name = f"/aws/lambda/{lmd_fn}"
     res_logs = []
     # Get all log streams within the specified log group
-    log_streams_response = cld_watch_logs.describe_log_streams(
-        logGroupName=log_grp_name,
-        orderBy='LastEventTime',
-        descending=True,
-        limit=50 
-    )
+    # log_streams_response = cld_watch_logs.describe_log_streams(
+    #     logGroupName=log_grp_name,
+    #     orderBy='LastEventTime',
+    #     descending=True,
+    #     limit=50 
+    # )
     # Query to get all logs after timestamp from log group
     query = f'''
     fields @timestamp, @message
-    | filter @timestamp >= {start_time}
     | filter @message like /xar_id/
+    | sort @timestamp desc
     '''
+
+    # print(f"START_TIME: {start_time}\n")
     query_results = cld_watch_logs.start_query(
         logGroupName=log_grp_name,
         startTime=int(start_time/1000),  # Convert to seconds for CloudWatch Logs Insights
@@ -108,7 +110,7 @@ def get_lambda_logs(lmd_fn, start_time):
         queryString=query,
         limit=100  
     )
-
+    
     # Retrieve the query ID
     query_id = query_results['queryId']
     while True: # poll to check if query is completed
@@ -130,7 +132,8 @@ def get_lambda_logs(lmd_fn, start_time):
         msg_json = json.loads(message)
         res_logs.append(msg_json)
     # print(res_logs)
-
+    print(f"{lmd_fn} logs extracted")
+    print(res_logs)
     write_to_csv(f"logs/{lmd_fn}_logs.csv", res_logs)
     # print(res_logs)
     return res_logs

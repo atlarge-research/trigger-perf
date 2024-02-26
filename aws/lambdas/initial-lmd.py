@@ -3,9 +3,9 @@ import json
 import random
 import os
 
-def invoker_function(key, data, r, e_id):
+def invoker_function(key, data, r, e_id, run_id):
         client = boto3.client('lambda')
-        payload = [key, data, e_id]
+        payload = [key, data, e_id, run_id]
         response = client.invoke(
         FunctionName='write-lmd',
         InvocationType='Event',
@@ -31,6 +31,7 @@ def lambda_handler(event, context):
     
     # Get w-k-r input
     print('EVENT: ', event)
+    run_id = event.get('run_id')
     data_store = event.get('data_store')
     num_keys = int(event.get('num_keys'))
     ksize_start = int(event.get('ksize_start'))
@@ -43,8 +44,7 @@ def lambda_handler(event, context):
     # Get key sizes required
     key_sizes_to_write = []
     temp = ksize_start
-    print('TEMP')
-    print(temp)
+
     while temp < ksize_end:
          key_sizes_to_write.append(temp)
          temp += kjumps
@@ -56,11 +56,13 @@ def lambda_handler(event, context):
         data = generate_rand_string(vsize) # data size
         e_id = gen_event_id()
         # Invoke send/write function
-        invoker_function(key,data, num_readers,e_id)
+        print(f"INVOKING KEY SIZE: {i}\n")
+        invoker_function(key,data, num_readers,e_id,run_id)
+        
 
     return {
         'statusCode': 200,
         'body': json.dumps('Hello from Lambda!')
     }
 
-    # curl -X POST -H "Content-Type: application/json" -d '{"writes": "1", "keys": "n", "reads": "1"} https://jgtk3zdvy4.execute-api.eu-north-1.amazonaws.com/default/invoke-lambda
+    

@@ -64,7 +64,7 @@ return: a unique run_id of 10 bytes as str
 def gen_run_id():
     salt = 'abc'
     time_stamp = f"{str(time.time())}{salt}"
-    run_id = hashlib.md5(time_stamp.encode()).hexdigest()[:9] + "/"
+    run_id = hashlib.md5(time_stamp.encode()).hexdigest()[:10] 
     return run_id
 
 '''

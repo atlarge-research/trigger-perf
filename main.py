@@ -14,6 +14,7 @@ def read_config(file_path):
 # Load Configs
 test_configs = read_config('config.yaml')
 run_id = gen_run_id()
+data_store = test_configs['data_store']
 payload = {
     "run_id": run_id,
     "data_store": test_configs['data_store'],
@@ -45,9 +46,9 @@ def main(payload):
 
     # Get the lambda logs
     print(f"RUN ID: {run_id}")
-    get_lambda_logs("write-lmd", run_start_time, run_id)
-    time.sleep(75)
-    get_lambda_logs("read-lmd", run_start_time, run_id)
+    # get_lambda_logs("write-lmd", run_start_time, run_id)
+    # time.sleep(75)
+    # get_lambda_logs("read-lmd", run_start_time, run_id)
     
     # time.sleep(5)
     # latencies = calc_latency("logs/write-lmd_logs.csv", "logs/read-lmd_logs.csv")
@@ -56,12 +57,14 @@ def main(payload):
     return 0
 
 if __name__ == "__main__":
-
-    main(payload)
-
-# curl -X POST -H "Content-Type: application/json" -d '{"writes": "value69", "keys": "value70"}' https://opw4dj08ul.execute-api.eu-north-1.amazonaws.com/default/send-lambda
+    acc_id = 133132736141
+    # main(payload)
+    create_lambda_function(acc_id, "read-lmd")
 
 
 ##Todo
-    # run_id prop in initial and write lmd
-    # function to select relevant e_ids
+    # Role creation
+    # setup check 
+    # Dynamo setup
+    # data processing functions
+    

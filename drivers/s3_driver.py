@@ -1,29 +1,56 @@
 import json 
+import boto3
+import time
+import subprocess
 
-from aws.aws import run_command
+
+
+def run_command(cmd):
+    try:
+        result = subprocess.run(cmd, check=True, text=True, capture_output=True)
+        return  True, result.stdout.strip()
+    except subprocess.CalledProcessError as err:
+        print(f"Error: {err}")
+        return False, err.output
 
 
 '''
-Creates a bucket in eu-north-1 region
+Creates a bucket in us-east-1 region
 '''
+# def create_s3_bucket(bucket_name):
+
+#     create_s3bucket_cmd = [
+#         'aws', 's3api', 'create-bucket', \
+#         '--bucket', bucket_name, \
+#         '--create-bucket-configuration', \
+#         'LocationConstraint=us-east-1' 
+#     ]
+#     success, output = run_command(create_s3bucket_cmd)
+#     if success:
+#         print(f"-> S3 bucket {bucket_name} setup done")
+#     else:
+#         print(f"ERROR: S3 bucket {bucket_name} setup failed")
+#         print(output)
+#     return 0
+
 def create_s3_bucket(bucket_name):
-    # bucket_name = "test-buck-xyz"
-    # aws s3api create-bucket \
-    # --bucket test-buckxyz \
-    # --create-bucket-configuration LocationConstraint=eu-north-1
-    create_s3bucket_cmd = [
-        'aws', 's3api', 'create-bucket', \
-        '--bucket', bucket_name, \
-        '--create-bucket-configuration', \
-        'LocationConstraint=eu-north-1' 
-    ]
-    success, output = run_command(create_s3bucket_cmd)
-    if success:
-        print(f"-> S3 bucket {bucket_name} setup done")
-    else:
-        print(f"ERROR: S3 bucket {bucket_name} setup failed")
+    region = 'us-east-1'  # change if needed
 
-    return 0
+    s3_client = boto3.client('s3')
+
+    try:
+        # Create S3 bucket
+        s3_client.create_bucket(
+            Bucket=bucket_name,
+            CreateBucketConfiguration={
+                'LocationConstraint': region
+            }
+        )
+        print(f"-> S3 bucket {bucket_name} setup done")
+        return True
+    except Exception as e:
+        print(f"ERROR: S3 bucket {bucket_name} setup failed. {str(e)}")
+        return False
 
 
 
@@ -58,7 +85,7 @@ def s3_lambda_event_notif_setup(fn_name, bucket_name, acc_id):
                         {{
                         "LambdaFunctionConfigurations": [
                             {{
-                            "LambdaFunctionArn": "arn:aws:lambda:eu-north-1:{acc_id}:function:{fn_name}",
+                            "LambdaFunctionArn": "arn:aws:lambda:us-east-1:{acc_id}:function:{fn_name}",
                             "Events": ["s3:ObjectCreated:*"]
                             }}                                 
                         ]
@@ -76,6 +103,21 @@ def s3_lambda_event_notif_setup(fn_name, bucket_name, acc_id):
         print(f"ERROR: S3-read-lmd Event notification failed")
     
     return 0
+
+def s3_put_object(file_key, data):
+    s3_client = boto3.client('s3')
+    s3_bucket = 'test-buck-xyz'
+    metadata = {'e_id': str(0)} # Remove later
+    put_time = time.time()
+    resp = s3_client.put_object(
+        Bucket=s3_bucket,
+        Key=file_key,
+        Body=json.dumps(data),
+        Metadata=metadata,
+        ContentType='application/json'
+    )
+    xar_id = resp['ResponseMetadata']['HTTPHeaders']['x-amz-request-id']
+    return xar_id, put_time
 
 
 def delete_s3_bucket():

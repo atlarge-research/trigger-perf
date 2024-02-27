@@ -1,13 +1,15 @@
 
 ## other inputs: "etcd", "dynamodb", "s3Express", "Aurora"
 data_store: "s3"
-aws_acc_id: 471112959817
-
+aws_acc_id: 133132736141
+region: us-east-1
+# Sacheen acc =133132736141
+# My acc = 471112959817
 key:
   num: "1"
   size_start: "10" #bytes
   size_end: "20" #bytes
-  jumps: "2" 
+  jumps: "4" 
 
 value:
   size: "100" #bytes

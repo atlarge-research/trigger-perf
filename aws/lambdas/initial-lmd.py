@@ -3,9 +3,9 @@ import json
 import random
 import os
 
-def invoker_function(key, data, r, e_id, run_id):
+def ds_write_lmd_func(key, data, ds, e_id, run_id):
         client = boto3.client('lambda')
-        payload = [key, data, e_id, run_id]
+        payload = [key, data, e_id, run_id, ds]
         response = client.invoke(
         FunctionName='write-lmd',
         InvocationType='Event',
@@ -13,18 +13,15 @@ def invoker_function(key, data, r, e_id, run_id):
         )
         if response.get('FunctionError'):
             print(f"Error invoking write-lmd: {response.get('FunctionError')}")
+        return response
+    
+    
 
 def generate_rand_string(size):
     # size is in bytes
     random_bytes = os.urandom(size)
     random_string = random_bytes.decode('latin-1')  # Decode bytes to string
     return random_string
-
-event_id_counter = 0
-def gen_event_id():
-    global event_id_counter
-    event_id_counter += 1 
-    return event_id_counter
 
 
 def lambda_handler(event, context):
@@ -54,15 +51,15 @@ def lambda_handler(event, context):
     for i in key_sizes_to_write: 
         key = generate_rand_string(i) # key size
         data = generate_rand_string(vsize) # data size
-        e_id = gen_event_id()
+        e_id = 0
         # Invoke send/write function
         print(f"INVOKING KEY SIZE: {i}\n")
-        invoker_function(key,data, num_readers,e_id,run_id)
-        
+
+        resp = ds_write_lmd_func(key,data, data_store,e_id,run_id)
 
     return {
         'statusCode': 200,
         'body': json.dumps('Hello from Lambda!')
     }
 
-    
+   

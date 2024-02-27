@@ -4,7 +4,7 @@ import boto3
 import time
 import json
 import csv
-import os
+import zipfile
 
 
 ## id to be replaced
@@ -13,38 +13,120 @@ def run_command(cmd):
         result = subprocess.run(cmd, check=True, text=True, capture_output=True)
         return  True, result.stdout.strip()
     except subprocess.CalledProcessError as err:
-        print(f"Command failed: {cmd}, Error: {err}")
+        print(f"Error: {err}")
         return False, err.output
+
+'''
+Creates an aws role that grants full permission
+for Lambda, S3 and Dynamo.
+role_name = 'myLambdaRole'
+'''
+def create_aws_role(role_name):
+    region = 'us-east-1'
     
-acc_id = 471112959817
-fn_name = "testy"
+    aws_client = boto3.client('iam', region_name=region)
+
+
+    lambda_assume_role_policy = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {
+                    "Service": "lambda.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+            }
+        ]
+    }
+
+    # Create IAM role for Lambda execution
+    role_response = aws_client.create_role(
+        RoleName=role_name,
+        AssumeRolePolicyDocument=json.dumps(lambda_assume_role_policy)
+    )
+
+    # Grants s3 & dynamo full access
+    policies_to_attach = [
+        'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+        'arn:aws:iam::aws:policy/AmazonS3FullAccess',
+        'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess',
+        'arn:aws:iam::aws:policy/CloudWatchFullAccess',
+        'arn:aws:iam::aws:policy/AWSLambda_FullAccess',
+        'arn:aws:iam::aws:policy/AWSLambdaInvocation-DynamoDB',
+        'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess'
+        # 'arn:aws:iam::aws:policy/',
+        # 'arn:aws:iam::aws:policy/',
+    ]
+    # Attaching the policies to the role
+    for pol in policies_to_attach:
+        aws_client.attach_role_policy(
+            RoleName=role_name,
+            PolicyArn=pol
+        )
+
+    role_arn = role_response['Role']['Arn']
+    print(f"AWS role created, Execution Role ARN: {role_arn}")
+    return role_arn
+
+
+
+# def create_lambda_function(acc_id, fn_name):
+    
+#     runtime = 'python3.8'
+#     handler = f"{fn_name}.lambda_handler"
+#     zip_file = f"fileb://aws/lambdas/{fn_name}.zip"
+#     role_arn = f"arn:aws:iam::{acc_id}:role/myLambdaRole"
+#     create_lambda_cmd = ['aws', 'lambda', 'create-function', \
+#                          '--function-name', fn_name, \
+#                          '--runtime', runtime, \
+#                          '--handler', handler, \
+#                          '--zip-file', zip_file, \
+#                          '--role', role_arn, \
+#                          '--logging-config', 'LogFormat=JSON' \
+#                         ]
+    
+#     success, output = run_command(create_lambda_cmd)
+#     if success:
+#         print(f"-> Lambda function {fn_name} setup done")
+#     else:
+#         print(f"ERROR: Lambda function {fn_name} setup failed")
+#         print(output)
+#     return 0
+
 def create_lambda_function(acc_id, fn_name):
+    lambda_client = boto3.client('lambda', region_name='us-east-1')  # Replace with your desired region
     
-    runtime = 'python3.8'
-    handler = f"{fn_name}.lambda_handler"
-    zip_file = f"fileb://aws/lambdas/{fn_name}.zip"
-    role_arn = f"arn:aws:iam::{acc_id}:role/myLambdaRole"
-    create_lambda_cmd = ['aws', 'lambda', 'create-function', \
-                         '--function-name', fn_name, \
-                         '--runtime', runtime, \
-                         '--handler', handler, \
-                         '--zip-file', zip_file, \
-                         '--role', role_arn, \
-                         '--logging-config', 'LogFormat=JSON' \
-                        ]
-    
-    success, output = run_command(create_lambda_cmd)
-    if success:
+    # Upload Lambda function code (ZIP file)
+    with zipfile.ZipFile(f'./aws/lambdas/{fn_name}.zip', 'w') as zip_file:
+        # Add your Lambda function files to the ZIP file
+        zip_file.write(f'./aws/lambdas/{fn_name}.py', arcname=f'{fn_name}.py')
+
+    with open(f'./aws/lambdas/{fn_name}.zip', 'rb') as code_file:
+        function_code = code_file.read()
+
+    # Create or update Lambda function
+    try:
+        response = lambda_client.create_function(
+            FunctionName=fn_name,
+            Runtime='python3.8',
+            Handler=f'{fn_name}.lambda_handler',
+            Role=f'arn:aws:iam::{acc_id}:role/myLambdaRole',
+            Code={'ZipFile': function_code},
+            LoggingConfig={'LogFormat': 'JSON'},
+        )
         print(f"-> Lambda function {fn_name} setup done")
-    else:
+        return response
+    except Exception as e:
         print(f"ERROR: Lambda function {fn_name} setup failed")
-        print(output)
-    return 0
+        print(f"Error details: {str(e)}")
+        return None
+
+
 
 
 '''
 Used to Invoke the Initial lambda function
-payload: {w-k-r}
 '''
 def lambda_invoke(fn_name, payload): # payload requires bas64 encoding
     
@@ -58,7 +140,7 @@ def lambda_invoke(fn_name, payload): # payload requires bas64 encoding
                       '--invocation-type', 'Event', \
                     #   '--cli-binary-format', 'raw-in-base64-out', \
                       '--payload', enc_payload, \
-                      '--region', 'eu-north-1', 'response.json' \
+                      '--region', 'us-east-1', 'response.json' \
                     ]
     success, output = run_command(lmd_invoke_cmd)
     if success:
@@ -140,16 +222,12 @@ def get_lambda_logs(lmd_fn, start_time, run_id):
 
 
 
-# if __name__ == "__main__":
-#     acc_id = 471112959817
-#     # fn_name = "write-lmd"
-#     # payload = '{"name": "Bob"}'
-#     # lambda_invoke(fn_name, payload)
-#     # start_time = int((time.time() - 3600) * 1000)
-#     # end_time = int(time.time() * 1000)
-#     lmd_fn = "write-lmd"
+if __name__ == "__main__":
+    acc_id = 133132736141
+    # create_aws_role('myLambdaRole')
+    
+    
 
-    # get_lambda_logs(lmd_fn, start_time)
 
 # query = f'''
 # fields @timestamp, @message

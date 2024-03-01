@@ -41,10 +41,8 @@ def main():
     test_configs = read_config('config.yaml')
     acc_id = test_configs['aws_acc_id']
     ds = test_configs['data_store']
-    create_dynamo_table("trigger-perf")
-
-
-    # setup_services(acc_id, ds)
+    
+    setup_services(acc_id, ds)
     # create_aws_role('myLambdaRole')
     
 

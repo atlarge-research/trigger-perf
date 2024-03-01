@@ -80,8 +80,12 @@ def gen_prefix_key(ksize: int, run_id: str):
     else:
         return run_id
 
-def extract_run_id(prefix_key: str):
-    pass
+'''
+Used to extract the id prefixed in the key/value
+'''
+def extract_id(prefix_key: str, id_size: int):
+    return prefix_key[:id_size]
+    
 
 
 

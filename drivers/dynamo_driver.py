@@ -75,4 +75,4 @@ def dynamo_put_item(table_name, key, value, region='us-east-1'):
 
 
 # dynamo_lambda_streams_setup("trigger-perf", "read-lmd", acc_id=133132736141)
-dynamo_put_item("trigger-perf", "gyz", "123")
+# dynamo_put_item("trigger-perf", "gyz", "123")

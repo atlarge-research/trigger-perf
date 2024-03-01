@@ -42,7 +42,7 @@ def main(payload):
 
 
     # Sleeping for full chain to complete
-    time.sleep(75)
+    time.sleep(15)
 
     # Get the lambda logs
     print(f"RUN ID: {run_id}")
@@ -58,8 +58,8 @@ def main(payload):
 
 if __name__ == "__main__":
     acc_id = 133132736141
-    # main(payload)
-    create_lambda_function(acc_id, "read-lmd")
+    main(payload)
+    
 
 
 ##Todo

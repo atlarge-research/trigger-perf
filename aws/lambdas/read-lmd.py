@@ -9,7 +9,14 @@ def get_size(input_string):
     size_in_bytes = len(string_bytes)
     return size_in_bytes
 
-def s3_handler(event, readfn_start_time):
+'''
+Used to extract the id prefixed in the key/value
+'''
+def extract_id(prefix_key: str, id_size: int):
+    return prefix_key[:id_size]
+    
+
+def s3_recv_handler(event, readfn_start_time):
     s3_event = event['Records'][0]['s3']
     bucket_name = s3_event['bucket']['name']
     object_key = s3_event['object']['key']
@@ -28,10 +35,30 @@ def s3_handler(event, readfn_start_time):
     }
     return log_data
 
-def dynamo_handler(event,readfn_start_time):
-    pass
-    # print('XAR-ID\n')
-    # print(event['Records'][0]['responseElements']['x-amz-request-id'])
+def dynamo_recv_handler(event,readfn_start_time):
+    key = event['Records'][0]['dynamodb']['Keys']['id']['S']
+    value = event['Records'][0]['dynamodb']['NewImage']['value']['S']
+    ksize = get_size(key)
+    vsize = get_size(value)
+    
+    # extract run_id from the key
+    run_id = extract_id(key, 10)
+    
+    # extract e_id from the value
+    e_id = extract_id(value, 10)
+
+    log_data = {
+        'run_id': run_id,
+        'e_id': e_id,
+        'event': 'RECV',
+        'exec_start_time': readfn_start_time,
+        'put_time': 0,
+        'key': key,
+        'key_size': ksize,
+        'value_size': vsize
+    }
+    return log_data
+
 
 def lambda_handler(event, context):
 
@@ -41,10 +68,11 @@ def lambda_handler(event, context):
     print(event)    
 
     # check what datastore triggered this function & handle
-    if event['Records'][0]['s3']:
-        log_data = s3_handler(event, readfn_start_time)
-    elif event['Records'][0]['eventSource'] == 'dynamodb':
-        log_data = dynamo_handler(event, readfn_start_time)
+    
+    if event['Records'][0]['eventSource'] == 'aws:dynamodb':
+        log_data = dynamo_recv_handler(event, readfn_start_time)
+    # elif event['Records'][0]['s3']:
+    #     log_data = dynamo_recv_handler(event, readfn_start_time)
     
     logger.info(json.dumps(log_data))
 

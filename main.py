@@ -45,10 +45,11 @@ def main(payload):
     time.sleep(15)
 
     # Get the lambda logs
-    print(f"RUN ID: {run_id}")
-    # get_lambda_logs("write-lmd", run_start_time, run_id)
+    print(f"RUN ID: {run_id}\n")
+    print(f"Getting Lambda logs....")
+    get_lambda_logs("write-lmd", run_start_time, run_id)
     # time.sleep(75)
-    # get_lambda_logs("read-lmd", run_start_time, run_id)
+    get_lambda_logs("read-lmd", run_start_time, run_id)
     
     # time.sleep(5)
     # latencies = calc_latency("logs/write-lmd_logs.csv", "logs/read-lmd_logs.csv")

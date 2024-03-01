@@ -166,21 +166,23 @@ def write_to_csv(output_file_path, logs):
 Get all lambda function logs for the given timestamp
 '''
 def get_lambda_logs(lmd_fn, start_time, run_id):
-
-    cld_watch_logs = boto3.client('logs')
+    region = 'us-east-1'
+    cld_watch_logs = boto3.client('logs', region_name=region)
     log_grp_name = f"/aws/lambda/{lmd_fn}"
+
+    try:
+        # Verify the existence of the log group
+        cld_watch_logs.describe_log_groups(logGroupNamePrefix=log_grp_name)
+    except cld_watch_logs.exceptions.ResourceNotFoundException:
+        print(f"Log group '{log_grp_name}' does not exist.")
+        return []
+    
     res_logs = []
-    # Get all log streams within the specified log group
-    # log_streams_response = cld_watch_logs.describe_log_streams(
-    #     logGroupName=log_grp_name,
-    #     orderBy='LastEventTime',
-    #     descending=True,
-    #     limit=50 
-    # )
+
     # Query to get all logs after timestamp from log group
     query = f'''
     fields @timestamp, @message
-    | filter @message like /xar_id/
+    | filter @message like /run_id/
     | sort @timestamp desc
     '''
 

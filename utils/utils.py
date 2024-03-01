@@ -3,8 +3,8 @@ import random
 import time
 import hashlib
 import os
-import uuid
 import pandas as pd
+from datetime import datetime
 
 def read_config(file_path: str):
     with open(file_path, 'r') as file:
@@ -13,34 +13,6 @@ def read_config(file_path: str):
 
 def generate_rand_bytes(size):
     return str(bytes(random.choices(range(256), k=size)))
-
-'''
-Get the data from the write & read csv files into a pandas df.
-returns: all logs from write&read lmds sorted by e_id.
-'''
-def prep_logs_data(write_csv_path, read_csv_path):
-    w_df = pd.read_csv(write_csv_path)
-    r_df = pd.read_csv(read_csv_path)
-    full_df = pd.concat([w_df, r_df], ignore_index=True)
-    # sorted_df = full_df.sort_values(by='e_id')
-    return w_df, r_df
-
-'''
-latency = readfn_start_time - s3_put_time
-'''
-def calc_latency(w_csv_path, r_csv_path):
-    w_df, r_df = prep_logs_data(w_csv_path, r_csv_path)
-    
-    s3_put_times = w_df['put_time']
-    rlmd_start_times = r_df['exec_start_time']
-    print(rlmd_start_times)
-    print(s3_put_times)
-    latencies = []
-    for i in range(0,len(rlmd_start_times)):
-        latency = rlmd_start_times[i] - s3_put_times[i]
-        latencies.append(latency)
-
-    return latencies
 
 
 def generate_rand_string(size: int):
@@ -54,6 +26,33 @@ def get_size(input_string: str):
     string_bytes = input_string.encode('latin-1')  # Encode string to bytes
     size_in_bytes = len(string_bytes)
     return size_in_bytes
+
+'''
+On a new run it saves the input payload as a row in ./logs/run_logs.csv
+'''
+def save_run_details(payload, path):
+    dummy_payload = {
+        "run_id": "Dummy entry",
+        "data_store": "data_store_1",
+        "num_keys": 100,
+        "ksize_start": 10,
+        "ksize_end": 100,
+        "kjumps": 10,
+        "vsize": 1024,
+        "num_readers": 5
+    }
+    # check if path exists if not create csv with dummy row
+    if not os.path.exists(path):
+        print("here\n")
+        dummy_df = pd.DataFrame([dummy_payload])
+        dummy_df.to_csv(path, index=False)
+    # Add run details to the csv 
+    payload["time"] = datetime.now()
+    run_df = pd.read_csv(path)
+    updated_run_df = run_df.append(payload, ignore_index=True)
+    updated_run_df.to_csv(path, index=False)
+
+
 
 
 '''

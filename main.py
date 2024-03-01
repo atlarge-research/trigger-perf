@@ -1,7 +1,8 @@
 import boto3
 import time
-import subprocess
+from datetime import datetime
 import yaml
+import csv
 
 from utils.utils import *
 from aws.aws import *
@@ -27,6 +28,7 @@ payload = {
 }
 
 
+# save_run_details(payload, "./logs/run_logs.csv")
 
 # print(payload)
 def main(payload):
@@ -52,6 +54,15 @@ def main(payload):
     get_lambda_logs("read-lmd", run_start_time, run_id)
     
     # time.sleep(5)
+    # Data processing
+    # data_proc_master(ds, run_id)
+        # Filter by run_id
+        # Sort by key_size
+        # Gen Latency arr & key size arr
+    
+    # Viz
+
+    # extract e_id, put_time
     # latencies = calc_latency("logs/write-lmd_logs.csv", "logs/read-lmd_logs.csv")
     
     
@@ -59,7 +70,7 @@ def main(payload):
 
 if __name__ == "__main__":
     acc_id = 133132736141
-    main(payload)
+    # main(payload)
     
 
 

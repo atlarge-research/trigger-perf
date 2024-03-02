@@ -5,6 +5,7 @@ import yaml
 import csv
 
 from utils.utils import *
+from utils.data_proc import *
 from aws.aws import *
 from drivers.s3_driver import *
 
@@ -64,12 +65,12 @@ def main(payload):
 
     # extract e_id, put_time
     # latencies = calc_latency("logs/write-lmd_logs.csv", "logs/read-lmd_logs.csv")
-    
-    
     return 0
+
 
 if __name__ == "__main__":
     acc_id = 133132736141
+    # print(calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv","c109e7b9af"))
     # main(payload)
     
 

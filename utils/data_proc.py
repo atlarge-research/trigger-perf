@@ -22,21 +22,37 @@ def prep_logs_data(write_csv_path, read_csv_path, run_id):
     return w_df, r_df
 
 '''
-latency = readfn_start_time - s3_put_time
+latency = readfn_start_time - put_time
+return: A array with arrays of latencies for each key size
 '''
-def calc_latency(w_csv_path, r_csv_path):
-    w_df, r_df = prep_logs_data(w_csv_path, r_csv_path)
-    
-    s3_put_times = w_df['put_time']
-    rlmd_start_times = r_df['exec_start_time']
-    print(rlmd_start_times)
-    print(s3_put_times)
-    latencies = []
-    for i in range(0,len(rlmd_start_times)):
-        latency = rlmd_start_times[i] - s3_put_times[i]
-        latencies.append(latency)
+def calc_latency(w_csv_path, r_csv_path, run_id):
+    w_df, r_df = prep_logs_data(w_csv_path, r_csv_path, run_id)
 
-    return latencies
+    # Array of ksizes
+    ksizes_list = w_df["key_size"].unique()
+    ksizes_list.sort()
+
+    overall_latencies = []
+    # Per ksize logic
+    for i in ksizes_list:
+        ksize_latencies = [] # array with each iter latency for that ksize
+        
+        tmpw_df = w_df[w_df["key_size"] == i]
+        tmpr_df = r_df[r_df["key_size"] == i]
+        
+        for j in tmpw_df["e_id"]: # get latency for each event (e_id)
+            w_time = tmpw_df.loc[tmpw_df["e_id"] == j, "put_time"].iat[0]
+            try:
+                r_time = tmpr_df.loc[tmpr_df["e_id"] == j, "exec_start_time"].iat[0]
+            except:
+                print(f"Event id {j} not received by read-lmd")
+            # get latency for one event
+            latency = r_time - w_time
+            ksize_latencies.append(latency)
+        # print(f"Ksize {i}: {ksize_latencies}")
+        overall_latencies.append(ksize_latencies)
+
+    return overall_latencies
 
 
 # Filter by run_id

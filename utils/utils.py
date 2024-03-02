@@ -39,7 +39,8 @@ def save_run_details(payload, path):
         "ksize_end": 100,
         "kjumps": 10,
         "vsize": 1024,
-        "num_readers": 5
+        "num_readers": 5,
+        "datetime": "abc"
     }
     # check if path exists if not create csv with dummy row
     if not os.path.exists(path):

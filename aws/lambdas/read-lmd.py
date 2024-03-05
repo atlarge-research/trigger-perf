@@ -42,10 +42,10 @@ def dynamo_recv_handler(event,readfn_start_time):
     vsize = get_size(value)
     
     # extract run_id from the key
-    run_id = extract_id(key, 10)
+    run_id = extract_id(key, 7)
     
     # extract e_id from the value
-    e_id = extract_id(value, 10)
+    e_id = extract_id(value, 7)
 
     log_data = {
         'run_id': run_id,

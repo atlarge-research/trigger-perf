@@ -15,10 +15,23 @@ def generate_rand_bytes(size):
     return str(bytes(random.choices(range(256), k=size)))
 
 
+# def generate_rand_string(size: int):
+#     # size is in bytes
+#     random_bytes = os.urandom(size)
+#     random_string = random_bytes.decode('latin-1')  # Decode bytes to string
+#     return random_string
+
+
 def generate_rand_string(size: int):
     # size is in bytes
     random_bytes = os.urandom(size)
     random_string = random_bytes.decode('latin-1')  # Decode bytes to string
+    random_string = random_string.replace('\n', '').replace('\r', '')  # Remove newline characters
+    
+    if len(random_string.encode('latin-1')) < size:
+        padding = generate_rand_string(size - len(random_string.encode('latin-1')))
+        random_string += padding
+
     return random_string
 
 def get_size(input_string: str):
@@ -59,12 +72,12 @@ def save_run_details(payload, path):
 '''
 Generates a random run_id for every time the system in run
 by hashing the run start timestamp and a salt.
-return: a unique run_id of 10 bytes as str
+return: a unique run_id of 7 bytes as str
 '''
 def gen_run_id():
     salt = 'abc'
     time_stamp = f"{str(time.time())}{salt}"
-    run_id = hashlib.md5(time_stamp.encode()).hexdigest()[:10] 
+    run_id = hashlib.md5(time_stamp.encode()).hexdigest()[:7] 
     return run_id
 
 '''

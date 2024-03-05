@@ -8,14 +8,15 @@ region: us-east-1
 key:
   num: "1"
   size_start: "10" #bytes
-  size_end: "20" #bytes
-  jumps: "4" 
+  size_end: "31" #bytes
+  jumps: "10" 
+  sizes_list: "[10, 20, 40, 80, 120, 160]"
 
 value:
   size: "100" #bytes
   
 num_readers: "1"
 
-num_iters: "5"
+num_iters: "30" # to be sent to intial-lmd
 
 # write code to verify and error check config inputs

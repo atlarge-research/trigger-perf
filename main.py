@@ -3,9 +3,11 @@ import time
 from datetime import datetime
 import yaml
 import csv
+from progressbar import progressbar
 
 from utils.utils import *
 from utils.data_proc import *
+from utils.viz import *
 from aws.aws import *
 from drivers.s3_driver import *
 
@@ -35,49 +37,54 @@ payload = {
 def main(payload):
 
     run_start_time = time.time()
-    # print(f"RUN START_TIME: {run_start_time}\n")
-
+    print(f"\nRUN START_TIME: {run_start_time}")
+    print(f"RUN ID: {run_id}\n")
     time.sleep(3)
     # Invokes the Initial lmd 
     lambda_invoke('initial-lmd', payload)
 
     # Create a SNS notification to indicate initial-lmd completion
 
-
+    
     # Sleeping for full chain to complete
-    time.sleep(15)
+    print("Waiting for full chain to complete")
+    time.sleep(50)
 
     # Get the lambda logs
-    print(f"RUN ID: {run_id}\n")
     print(f"Getting Lambda logs....")
+    for i in progressbar(range(100)):# sleeoing 250 secs
+        time.sleep(2.5) 
     get_lambda_logs("write-lmd", run_start_time, run_id)
     # time.sleep(75)
     get_lambda_logs("read-lmd", run_start_time, run_id)
     
-    # time.sleep(5)
-    # Data processing
-    # data_proc_master(ds, run_id)
-        # Filter by run_id
-        # Sort by key_size
-        # Gen Latency arr & key size arr
-    
-    # Viz
 
-    # extract e_id, put_time
-    # latencies = calc_latency("logs/write-lmd_logs.csv", "logs/read-lmd_logs.csv")
+    # Data processing
+    latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", run_id)
+    print(latencies)
+    gen_box_plot(latencies, run_id) 
+        
+
     return 0
 
 
 if __name__ == "__main__":
     acc_id = 133132736141
     # print(calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv","c109e7b9af"))
-    # main(payload)
+    main(payload)
+    # get_lambda_logs("read-lmd", 1709630688.1948102, '3c55d5a165')
+    
+    # latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", '22c865e')
+    # print(latencies)
+    # gen_box_plot(latencies, "22c865e")
     
 
 
 ##Todo
-    # Role creation
-    # setup check 
-    # Dynamo setup
-    # data processing functions
+    # poll logs until results
+    # setup check
+    # iter changes
+    # Dynamo full run completion
+    # complete run_logging
+    # progress bar for waiting
     

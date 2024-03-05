@@ -154,10 +154,10 @@ def lambda_invoke(fn_name, payload): # payload requires bas64 encoding
 '''
 Creates & writes to a csv file 
 '''
-def write_to_csv(output_file_path, logs):
+def write_to_csv(output_file_path, logs, delimiter=','):
     with open(output_file_path, mode='w', newline='') as csv_file:
         fieldnames = logs[0].keys() if logs else []
-        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames, delimiter=delimiter)
         writer.writeheader()
         writer.writerows(logs)
        
@@ -216,12 +216,30 @@ def get_lambda_logs(lmd_fn, start_time, run_id):
         msg_json = json.loads(message)
         res_logs.append(msg_json)
     # print(res_logs)
-    print(f"{lmd_fn} logs extracted")
+    # print(f"{lmd_fn} logs extracted")
     print(res_logs)
-    write_to_csv(f"logs/{lmd_fn}_logs.csv", res_logs)
+    write_to_csv(f"logs/{lmd_fn}_logs.csv", res_logs, delimiter=',')
     # print(res_logs)
     return res_logs
 
+def logs_master(lmd_fn, start_time, run_id):
+    
+    max_retries = 3
+    total_events = 30
+    for _ in range(max_retries):
+        logs = get_lambda_logs(lmd_fn, start_time, run_id)
+
+        if logs != None:
+            ctr = 0
+            for log in logs:
+                if log['run_id'] == run_id:
+                    ctr += 1
+            if ctr >= total_events:
+                return("All event logs received!")
+            else:
+                print(f"Only {ctr}/{total_events} received. Retrying in 30 secs...")
+        time.sleep(30)
+        print("getting logs...")
 
 
 if __name__ == "__main__":
@@ -231,9 +249,3 @@ if __name__ == "__main__":
     
 
 
-# query = f'''
-# fields @timestamp, @message
-# | filter @timestamp >= {start_time}
-# | filter @logStream = '{log_stream_name}'
-# | filter @message like /TBE/
-# '''

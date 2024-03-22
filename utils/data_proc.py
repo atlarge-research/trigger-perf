@@ -27,7 +27,7 @@ return: A array with arrays of latencies for each key size
 '''
 def calc_latency(w_csv_path, r_csv_path, run_id):
     w_df, r_df = prep_logs_data(w_csv_path, r_csv_path, run_id)
-    
+    # print(w_df)
     # Array of ksizes
     ksizes_list = w_df["key_size"].unique()
     ksizes_list.sort()

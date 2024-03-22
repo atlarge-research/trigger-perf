@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 import yaml
 import csv
-from progressbar import progressbar
+from tqdm import tqdm
 
 from utils.utils import *
 from utils.data_proc import *
@@ -11,10 +11,12 @@ from utils.viz import *
 from aws.aws import *
 from drivers.s3_driver import *
 
+# To read config file
 def read_config(file_path):
     with open(file_path, 'r') as file:
         yload = yaml.safe_load(file)
     return yload
+
 # Load Configs
 test_configs = read_config('config.yaml')
 run_id = gen_run_id()
@@ -27,7 +29,8 @@ payload = {
     "ksize_end": test_configs['key']['size_end'],
     "kjumps": test_configs['key']['jumps'],
     "vsize": test_configs['value']['size'],
-    "num_readers": test_configs['num_readers']
+    "num_readers": test_configs['num_readers'],
+    "ksizes_list": test_configs['key']['sizes_list']
 }
 
 
@@ -52,31 +55,29 @@ def main(payload):
 
     # Get the lambda logs
     print(f"Getting Lambda logs....")
-    for i in progressbar(range(100)):# sleeoing 250 secs
-        time.sleep(2.5) 
+    for i in tqdm(range(100), desc="getting logs....."):
+        time.sleep(4) 
     get_lambda_logs("write-lmd", run_start_time, run_id)
     # time.sleep(75)
     get_lambda_logs("read-lmd", run_start_time, run_id)
     
-
     # Data processing
     latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", run_id)
     print(latencies)
-    gen_box_plot(latencies, run_id) 
+    ksizes_list = test_configs['key']['sizes_list']
+    gen_box_plot(latencies, run_id, ksizes_list) 
         
-
     return 0
 
 
 if __name__ == "__main__":
     acc_id = 133132736141
-    # print(calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv","c109e7b9af"))
-    main(payload)
-    # get_lambda_logs("read-lmd", 1709630688.1948102, '3c55d5a165')
     
-    # latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", '22c865e')
+    main(payload)
+    
+    # latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", 'b8396a3')
     # print(latencies)
-    # gen_box_plot(latencies, "22c865e")
+    # gen_box_plot(latencies, "b8396a3", [10, 20, 40, 80, 120, 160])
     
 
 

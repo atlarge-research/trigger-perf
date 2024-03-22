@@ -32,6 +32,7 @@ def setup_services(acc_id, ds): # Set up lambda functions & data store
     elif ds == "dynamo":
         create_dynamo_table("trigger-perf")
         dynamo_lambda_streams_setup("trigger-perf", "read-lmd", acc_id)
+    elif ds == "etcd":
         pass
 
     print(f"## {ds} Setup Complete!")

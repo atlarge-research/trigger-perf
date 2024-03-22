@@ -10,7 +10,7 @@ key:
   size_start: "10" #bytes
   size_end: "31" #bytes
   jumps: "10" 
-  sizes_list: "[10, 20, 40, 80, 120, 160]"
+  sizes_list: "[20, 40, 80, 120, 160]"
 
 value:
   size: "100" #bytes

@@ -7,6 +7,8 @@ import csv
 import zipfile
 
 
+ec2 = boto3.client('ec2', region_name='us-east-1')
+
 ## id to be replaced
 def run_command(cmd):
     try:
@@ -21,11 +23,9 @@ Creates an aws role that grants full permission
 for Lambda, S3 and Dynamo.
 role_name = 'myLambdaRole'
 '''
-def create_aws_role(role_name):
-    region = 'us-east-1'
-    
-    aws_client = boto3.client('iam', region_name=region)
+def create_aws_lambda_role(role_name, region):
 
+    aws_client = boto3.client('iam', region_name=region)
 
     lambda_assume_role_policy = {
         "Version": "2012-10-17",
@@ -54,9 +54,7 @@ def create_aws_role(role_name):
         'arn:aws:iam::aws:policy/CloudWatchFullAccess',
         'arn:aws:iam::aws:policy/AWSLambda_FullAccess',
         'arn:aws:iam::aws:policy/AWSLambdaInvocation-DynamoDB',
-        'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess'
-        # 'arn:aws:iam::aws:policy/',
-        # 'arn:aws:iam::aws:policy/',
+        'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess',
     ]
     # Attaching the policies to the role
     for pol in policies_to_attach:
@@ -66,9 +64,87 @@ def create_aws_role(role_name):
         )
 
     role_arn = role_response['Role']['Arn']
-    print(f"AWS role created, Execution Role ARN: {role_arn}")
+    print(f"AWS Lambda role created, Execution Role ARN: {role_arn}")
     return role_arn
 
+
+'''
+Create AWS EC2 role with full permissions,
+Also creates a instance profile and attaches role to it.
+Role name is used for the inst_prof name as well.
+role_name = 'myEC2Role'
+return: role_arn, inst_prof_arn
+'''
+def create_aws_ec2_role(role_name, region):
+    
+    iam = boto3.client('iam', region_name=region)
+
+    policy_doc = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {
+                    "Service": "ec2.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+            }
+        ]
+    }
+    try: 
+        role_resp = iam.create_role(
+            RoleName=role_name,
+            AssumeRolePolicyDocument=json.dumps(policy_doc)
+        )
+        policies_to_attach = [
+            'arn:aws:iam::aws:policy/AmazonEC2FullAccess'
+        ]
+        # Attaching the policies to the role
+        for pol in policies_to_attach:
+            iam.attach_role_policy(
+                RoleName=role_name,
+                PolicyArn=pol
+            )
+        role_arn = role_resp['Role']['Arn']
+
+        inst_profile_resp = iam.create_instance_profile(
+            InstanceProfileName=role_name
+        )
+        inst_profile_arn = inst_profile_resp['InstanceProfile']['Arn']
+
+        # add role to instance profile
+        resp = iam.add_role_to_instance_profile(
+            InstanceProfileName=role_name,
+            RoleName=role_name
+        )
+    
+        print(role_arn)
+        print(inst_profile_arn)
+        return role_arn, inst_profile_arn
+    
+    
+    except Exception as e:
+        print(f"ERROR: EC2 Role setup failed")
+        print(f"Error details: {str(e)}")
+        return None
+
+'''
+Attaches Role to given ec2 instance
+args: ec2 instance id, role name, instance profile arn 
+'''
+def attach_role_to_ec2(inst_id, role_name, inst_prof_arn):
+    try:
+        resp = ec2.associate_iam_instance_profile(
+            IamInstanceProfile={
+                'Arn': inst_prof_arn,
+                'Name': role_name
+            },
+            InstanceId=inst_id
+        )
+    except Exception as e:
+        print(f"ERROR: EC2 Role setup failed")
+        print(f"Error details: {str(e)}")
+        return None
 
 
 # def create_lambda_function(acc_id, fn_name):
@@ -77,15 +153,15 @@ def create_aws_role(role_name):
 #     handler = f"{fn_name}.lambda_handler"
 #     zip_file = f"fileb://aws/lambdas/{fn_name}.zip"
 #     role_arn = f"arn:aws:iam::{acc_id}:role/myLambdaRole"
-#     create_lambda_cmd = ['aws', 'lambda', 'create-function', \
-#                          '--function-name', fn_name, \
-#                          '--runtime', runtime, \
-#                          '--handler', handler, \
-#                          '--zip-file', zip_file, \
-#                          '--role', role_arn, \
-#                          '--logging-config', 'LogFormat=JSON' \
-#                         ]
-    
+# create_lambda_cmd = ['aws', 'lambda', 'create-function', \
+#                      '--function-name', fn_name, \
+#                      '--runtime', runtime, \
+#                      '--handler', handler, \
+#                      '--zip-file', zip_file, \
+#                      '--role', role_arn, \
+#                      '--logging-config', 'LogFormat=JSON' \
+#                     ]
+
 #     success, output = run_command(create_lambda_cmd)
 #     if success:
 #         print(f"-> Lambda function {fn_name} setup done")
@@ -245,6 +321,8 @@ def logs_master(lmd_fn, start_time, run_id):
 if __name__ == "__main__":
     acc_id = 133132736141
     # create_aws_role('myLambdaRole')
+    role_arn = create_aws_ec2_role('myEC2Role', 'us-east-1')
+    # attach_role_to_ec2('i-0df18bbee26fcf028', role_arn)
     
     
 

@@ -9,7 +9,7 @@ def setup_services(acc_id, ds): # Set up lambda functions & data store
     print("## Setup process started")
 
     # Setup Role ###TBD
-    # create_aws_role('myLambdaRole')
+    # create_aws_lambda_role('myLambdaRole')
     # time.sleep(7)
 
     # Initial lambda setup
@@ -39,12 +39,17 @@ def setup_services(acc_id, ds): # Set up lambda functions & data store
     pass
 
 def main():
-    test_configs = read_config('config.yaml')
-    acc_id = test_configs['aws_acc_id']
-    ds = test_configs['data_store']
+    # test_configs = read_config('config.yaml')
+    # acc_id = test_configs['aws_acc_id']
+    # ds = test_configs['data_store']
     
-    setup_services(acc_id, ds)
-    # create_aws_role('myLambdaRole')
+    # setup_services(acc_id, ds)
+    # create_aws_lambda_role('myLambdaRole', 'us-east-1')
+    # create_aws_ec2_role('myEC2Role', 'us-east-1')
+
+    # role_arn = 'arn:aws:iam::133132736141:role/myEC2Role'
+    inst_prof_arn = 'arn:aws:iam::133132736141:instance-profile/myEC2Role'
+    attach_role_to_ec2('i-0df18bbee26fcf028', 'myEC2Role', inst_prof_arn)
     
 
     return

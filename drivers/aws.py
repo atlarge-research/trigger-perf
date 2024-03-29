@@ -97,7 +97,10 @@ def create_aws_ec2_role(role_name, region):
             AssumeRolePolicyDocument=json.dumps(policy_doc)
         )
         policies_to_attach = [
-            'arn:aws:iam::aws:policy/AmazonEC2FullAccess'
+            'arn:aws:iam::aws:policy/AmazonEC2FullAccess',
+            'arn:aws:iam::aws:policy/AmazonSSMFullAccess',
+            'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore',
+            'arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy'
         ]
         # Attaching the policies to the role
         for pol in policies_to_attach:

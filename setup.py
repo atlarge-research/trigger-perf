@@ -1,7 +1,8 @@
 from utils.utils import * 
-from aws.aws import *
+from drivers.aws import *
 from drivers.s3_driver import *
 from drivers.dynamo_driver import *
+from drivers.etcd_driver import * 
 
 
 def setup_services(acc_id, ds): # Set up lambda functions & data store
@@ -33,6 +34,7 @@ def setup_services(acc_id, ds): # Set up lambda functions & data store
         create_dynamo_table("trigger-perf")
         dynamo_lambda_streams_setup("trigger-perf", "read-lmd", acc_id)
     elif ds == "etcd":
+
         pass
 
     print(f"## {ds} Setup Complete!")
@@ -45,11 +47,11 @@ def main():
     
     # setup_services(acc_id, ds)
     # create_aws_lambda_role('myLambdaRole', 'us-east-1')
-    # create_aws_ec2_role('myEC2Role', 'us-east-1')
+    create_aws_ec2_role('myEC2Role', 'us-east-1')
 
     # role_arn = 'arn:aws:iam::133132736141:role/myEC2Role'
-    inst_prof_arn = 'arn:aws:iam::133132736141:instance-profile/myEC2Role'
-    attach_role_to_ec2('i-0df18bbee26fcf028', 'myEC2Role', inst_prof_arn)
+    # inst_prof_arn = 'arn:aws:iam::133132736141:instance-profile/myEC2Role'
+    # attach_role_to_ec2('i-0580939aecc5dd41b', 'myEC2Role', inst_prof_arn)
     
 
     return

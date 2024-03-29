@@ -8,7 +8,7 @@ from tqdm import tqdm
 from utils.utils import *
 from utils.data_proc import *
 from utils.viz import *
-from aws.aws import *
+from drivers.aws import *
 from drivers.s3_driver import *
 
 # To read config file

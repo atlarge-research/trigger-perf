@@ -145,7 +145,7 @@ def attach_role_to_ec2(inst_id, role_name, inst_prof_arn):
             InstanceId=inst_id
         )
     except Exception as e:
-        print(f"ERROR: EC2 Role setup failed")
+        print(f"ERROR: attaching role to EC2 instances failed")
         print(f"Error details: {str(e)}")
         return None
 

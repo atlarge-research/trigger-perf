@@ -1,0 +1,15 @@
+- name: Master node setup
+  hosts: etcd
+  tasks:
+    - name: test command
+      become: true
+      ansible.builtin.shell: mkdir checky
+    # - name: Check if k3s is installed
+    #   become: true
+    #   ansible.builtin.shell:
+    # - name: Check if k3s is installed
+    #   become: true
+    #   ansible.builtin.shell:
+
+
+    

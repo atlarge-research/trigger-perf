@@ -135,10 +135,6 @@ def create_ec2_nodes(sec_grp, subnet_id, key_name, num, acc_id):
                     ],
                     'AssociatePublicIpAddress': True            
                 } ]
-            # IamInstanceProfile={
-            #     'Arn': f'arn:aws:iam::{acc_id}:instance-profile/myEC2Role'
-            #     # 'Name': 'myEC2Role'
-            # }
             )
         instance_ids = [i['InstanceId'] for i in response['Instances']]
         
@@ -291,7 +287,7 @@ def etcd_setup_master(acc_id):
 
 if __name__ == "__main__":
     acc_id = 133132736141
-    etcd_setup_master(acc_id)
+    # etcd_setup_master(acc_id)
     # etcd_insts = [['i-08db15828db8804f2', '172.31.0.116', '3.93.182.47'], ['i-00d2f7e2f251f33d4', '172.31.0.232', '54.224.92.225'], ['i-0535f24b75038d791', '172.31.0.253', '54.83.93.180']]
     # node_configs = ['ETCD_NAME=etcd0\nETCD_DATA_DIR=/var/lib/etcd\nETCD_LISTEN_CLIENT_URLS=http://172.31.0.116:2379,http://127.0.0.1:2379\nETCD_LISTEN_PEER_URLS=http://172.31.0.116:2380\nETCD_ADVERTISE_CLIENT_URLS=http://172.31.0.116:2379\nETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.31.0.116:2380\nETCD_INITIAL_CLUSTER=etcd1=http://172.31.0.116:2380,etcd2=http://172.31.0.232:2380,etcd3=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER_STATE=new\nETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster\n', 'ETCD_NAME=etcd1\nETCD_DATA_DIR=/var/lib/etcd\nETCD_LISTEN_CLIENT_URLS=http://172.31.0.232:2379,http://127.0.0.1:2379\nETCD_LISTEN_PEER_URLS=http://172.31.0.232:2380\nETCD_ADVERTISE_CLIENT_URLS=http://172.31.0.232:2379\nETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.31.0.232:2380\nETCD_INITIAL_CLUSTER=etcd1=http://172.31.0.116:2380,etcd2=http://172.31.0.232:2380,etcd3=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER_STATE=new\nETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster\n', 'ETCD_NAME=etcd2\nETCD_DATA_DIR=/var/lib/etcd\nETCD_LISTEN_CLIENT_URLS=http://172.31.0.253:2379,http://127.0.0.1:2379\nETCD_LISTEN_PEER_URLS=http://172.31.0.253:2380\nETCD_ADVERTISE_CLIENT_URLS=http://172.31.0.253:2379\nETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER=etcd1=http://172.31.0.116:2380,etcd2=http://172.31.0.232:2380,etcd3=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER_STATE=new\nETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster\n']
     # for i in range(len(etcd_insts)):

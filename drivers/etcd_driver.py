@@ -274,6 +274,12 @@ def etcd_setup_master(acc_id):
 
     return 0
 
+# aws function to setup up py file in ec2
+
+# aws function to run the watch script
+
+# to retrieve log file
+
 # Etcd setup watch
 
 # Etcd write kv pair(check watch on creation)

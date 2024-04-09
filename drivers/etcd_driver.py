@@ -1,5 +1,10 @@
 import boto3 
+import json
+import pandas as pd
+import matplotlib.pyplot as plt
+
 from aws import *
+
 
 
 ec2 = boto3.client('ec2', region_name='us-east-1')
@@ -280,19 +285,68 @@ def etcd_setup_master(acc_id):
 
 # to retrieve log file
 
-# Etcd setup watch
+'''
+Etcd data proc functions
+Arg: Path to etcd log file
+'''
+def parse_log_data(log_file):
+    with open(log_file, 'r') as f:
+        json_data = [json.loads(line) for line in f if line.strip()]
+    return json_data
 
-# Etcd write kv pair(check watch on creation)
+'''
+Return: A dict with key size as key and array of time differences as value.
+Sample for key sizes [5,8] and iter 3:-
+{5: [0.014148235321044922, 0.010448932647705078, 0.025563955307006836], 8: [0.07114601135253906, 0.07413339614868164, 0.1045980453491211]}
+'''
+def etcd_data_proc(log_file):
+    log_data = parse_log_data(log_file)
+    df = pd.DataFrame(log_data)
+    unique_ksizes = df['KeySize'].unique().tolist()
+    print(unique_ksizes)
+    put_events = df[df['Event'] == 'PUT']
+    trigger_events = df[df['Event'] == 'TRIGGER']
+    # print(put_events)
+    
+    res = {}
+    for ksize in unique_ksizes:
+        put_events = df[(df['Event'] == 'PUT') & (df['KeySize'] == ksize)]
+        trigger_events = df[(df['Event'] == 'TRIGGER') & (df['KeySize'] == ksize)]
+        
+        put_events = put_events.set_index(['Key', 'KeyVersion'])
+        # print(put_events)
+        trigger_events = trigger_events.set_index(['Key', 'KeyVersion'])
+        
+        merged_events = put_events.join(trigger_events, lsuffix='_PUT', rsuffix='_TRIGGER', how='inner')
+        # print(merged_events)
+        merged_events['Timestamp_Difference'] = merged_events['time_stamp_TRIGGER'] - merged_events['time_stamp_PUT']
+        
+        res[ksize] = merged_events['Timestamp_Difference'].tolist()
+    
+    print(res)
 
-# Etcd Modify kv (check watch on mod)
+    return res
+    
 
-# Etcd setup watch
+def etcd_gen_plot(latencies_dict):
+    data = [latencies_dict[ksize] for ksize in latencies_dict]
+    plt.figure(figsize=(8, 6))
+    plt.boxplot(data, labels=latencies_dict.keys())
+    plt.xlabel('Key Size (bytes)')
+    plt.ylabel('Timestamp Difference (ms)')
+    plt.title('Box Plot of Trigger latencies for different Key Sizes')
+    plt.grid(True)
+    plt.savefig(f"etcd_{latencies_dict.keys()}.png")
+    
+
 
 
 
 
 if __name__ == "__main__":
     acc_id = 133132736141
+    latencies = etcd_data_proc('etcd_log.log')
+    etcd_gen_plot(latencies)
     # etcd_setup_master(acc_id)
     # etcd_insts = [['i-08db15828db8804f2', '172.31.0.116', '3.93.182.47'], ['i-00d2f7e2f251f33d4', '172.31.0.232', '54.224.92.225'], ['i-0535f24b75038d791', '172.31.0.253', '54.83.93.180']]
     # node_configs = ['ETCD_NAME=etcd0\nETCD_DATA_DIR=/var/lib/etcd\nETCD_LISTEN_CLIENT_URLS=http://172.31.0.116:2379,http://127.0.0.1:2379\nETCD_LISTEN_PEER_URLS=http://172.31.0.116:2380\nETCD_ADVERTISE_CLIENT_URLS=http://172.31.0.116:2379\nETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.31.0.116:2380\nETCD_INITIAL_CLUSTER=etcd1=http://172.31.0.116:2380,etcd2=http://172.31.0.232:2380,etcd3=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER_STATE=new\nETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster\n', 'ETCD_NAME=etcd1\nETCD_DATA_DIR=/var/lib/etcd\nETCD_LISTEN_CLIENT_URLS=http://172.31.0.232:2379,http://127.0.0.1:2379\nETCD_LISTEN_PEER_URLS=http://172.31.0.232:2380\nETCD_ADVERTISE_CLIENT_URLS=http://172.31.0.232:2379\nETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.31.0.232:2380\nETCD_INITIAL_CLUSTER=etcd1=http://172.31.0.116:2380,etcd2=http://172.31.0.232:2380,etcd3=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER_STATE=new\nETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster\n', 'ETCD_NAME=etcd2\nETCD_DATA_DIR=/var/lib/etcd\nETCD_LISTEN_CLIENT_URLS=http://172.31.0.253:2379,http://127.0.0.1:2379\nETCD_LISTEN_PEER_URLS=http://172.31.0.253:2380\nETCD_ADVERTISE_CLIENT_URLS=http://172.31.0.253:2379\nETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER=etcd1=http://172.31.0.116:2380,etcd2=http://172.31.0.232:2380,etcd3=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER_STATE=new\nETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster\n']

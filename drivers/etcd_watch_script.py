@@ -49,7 +49,7 @@ Etcd CRUD operations
 '''
 def etcd_put_kv(key: str, value: str):
     etcd.put(key, value)
-    print(f"KV pair inserted => {key}:{value}")
+    # print(f"\nKV pair inserted => {key}:{value}")
 
 def etcd_get_kv(key: str):
     etcd.get(key)
@@ -65,16 +65,17 @@ def etcd_update_kv(key: str, new_val):
 Function to set watch on given key 
 '''
 def watch_callback(event, key):
-    print(event.events)
+    # print(event.events)
     for e in event.events:
         recv_time = time.time()
         e_version = e.version
-        # print("Event Type:", e.event_type)
+        check_key = e.key.decode("utf-8")
+        
         key_size = get_size(key)
         log_data = {'Key': key, 'Event': 'TRIGGER', 'KeySize': key_size, 'KeyVersion': e_version, 'time_stamp': recv_time}
         print(log_data)
         logger.info(json.dumps(log_data))
-        print(f"Key {key} has been updated, new value is")
+        # print(f"Key {key} has been updated, new value is")
 
 def set_watch_key(key: str):
     watch_id = etcd.add_watch_callback(key, lambda event: watch_callback(event, key))
@@ -113,7 +114,7 @@ def main():
     watch_threads = []
     for key in key_list:
         try:
-            thread = threading.Thread(target=set_watch_key, args=(key))
+            thread = threading.Thread(target=set_watch_key, args=(key,))
             thread.start()
             watch_threads.append(thread)
         except Exception as e:
@@ -129,9 +130,15 @@ def main():
             else:
                 etcd_update_kv(key, val)
             key_size = get_size(key)
-            log_data = {'Key': key, 'Event': 'PUT', 'KeySize': key_size, 'KeyVersion': i, 'time_stamp': send_time}
+            log_data = {'Key': key, 'Event': 'PUT', 'KeySize': key_size, 'KeyVersion': i+1, 'time_stamp': send_time}
             print(log_data)
             logger.info(json.dumps(log_data))
+
+
+'''
+Sample run command:
+python3.7 etcd_watch_script.py --ksizes [5,10] --iters 3 --val_size 10
+'''
 
 if __name__ == "__main__":
     main()

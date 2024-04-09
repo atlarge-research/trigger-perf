@@ -3,3 +3,5 @@ logs\
 check.py
 plots\
 drivers/saavi.pem
+drivers/etcd_log.log
+drivers/etcd_dict_*

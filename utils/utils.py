@@ -3,6 +3,7 @@ import random
 import time
 import hashlib
 import os
+import numpy as np
 import pandas as pd
 from datetime import datetime
 
@@ -100,8 +101,6 @@ def extract_id(prefix_key: str, id_size: int):
     return prefix_key[:id_size]
     
 
-
-
 # pkey = gen_prefix_key(15)
 # print(pkey)
 # # salt = 'abc'
@@ -112,5 +111,42 @@ def extract_id(prefix_key: str, id_size: int):
 #     print(configs['data_store'])
 #     pass
 
-# if __name__ == "__main__":
-#     main()
+def get_size_utf8(input_string: str):
+    # Calculate the size of the input string in bytes
+    string_bytes = input_string.encode('latin-1')  # Encode string to bytes
+    size_in_bytes = len(string_bytes)
+    return size_in_bytes
+
+
+def read_text_file(file_path):
+    ksizes_arr = []
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                key = line.strip() 
+                ksize = get_size_utf8(key)
+                ksizes_arr.append(ksize)
+        min_ks = min(ksizes_arr)
+        max_ks = max(ksizes_arr)
+        mean_ks = np.mean(ksizes_arr)
+        median_ks = np.median(ksizes_arr)
+        print(f"Min ksize = {min_ks}")
+        print(f"Max ksize = {max_ks}")
+        print(f"Mean ksize = {mean_ks}")
+        print(f"Median ksize = {median_ks}")
+
+    except Exception as e:
+        print("Error:", e)
+
+if __name__ == "__main__":
+    check = get_size_utf8('/registry/apiregistration.k8s.io/apiservices/v1.admissionregistration.k8s.io')
+    # print(check)
+    read_text_file('kube-etcd-keys.txt')
+
+'''
+Min ksize = 27
+Max ksize = 93
+Mean ksize = 58.562886597938146
+Median ksize = 59.0
+
+'''

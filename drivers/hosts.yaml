@@ -1,6 +1,0 @@
-etcd:
-  hosts:
-    100.24.242.121:
-      ansible_user: ubuntu
-      
-# ansible-playbook ec2.yaml -i inventory/my-cluster/hosts.yaml --private-key ../inventory/vm-private.pem

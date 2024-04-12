@@ -127,7 +127,7 @@ def create_ec2_nodes(sec_grp, subnet_id, key_name, num, acc_id):
     try: 
         response = ec2.run_instances(
             ImageId = ami,
-            InstanceType= 't2.micro',
+            InstanceType= 'i4i.large', # was t2.micro
             MinCount = num,
             MaxCount = num,
             KeyName = key_name,
@@ -316,7 +316,6 @@ def etcd_data_proc(log_file):
         put_events = put_events.set_index(['Key', 'KeyVersion'])
         # print(put_events)
         trigger_events = trigger_events.set_index(['Key', 'KeyVersion'])
-        
         merged_events = put_events.join(trigger_events, lsuffix='_PUT', rsuffix='_TRIGGER', how='inner')
         # print(merged_events)
         merged_events['Timestamp_Difference'] = merged_events['time_stamp_TRIGGER'] - merged_events['time_stamp_PUT']
@@ -340,12 +339,9 @@ def etcd_gen_plot(latencies_dict):
     
 
 
-
-
-
 if __name__ == "__main__":
     acc_id = 133132736141
-    latencies = etcd_data_proc('etcd_log.log')
+    latencies = etcd_data_proc('etcd_logging.log')
     etcd_gen_plot(latencies)
     # etcd_setup_master(acc_id)
     # etcd_insts = [['i-08db15828db8804f2', '172.31.0.116', '3.93.182.47'], ['i-00d2f7e2f251f33d4', '172.31.0.232', '54.224.92.225'], ['i-0535f24b75038d791', '172.31.0.253', '54.83.93.180']]

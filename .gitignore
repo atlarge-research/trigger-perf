@@ -5,3 +5,4 @@ plots\
 drivers/saavi.pem
 drivers/etcd_log.log
 drivers/etcd_dict_*
+utils/kube-etcd-keys*

@@ -254,7 +254,7 @@ def etcd_setup_master(acc_id):
     priv_key_path = gen_key_pair('saavi')
     role_arn, inst_prof_arn = create_aws_ec2_role('myEC2Role', 'us-east-1')
 
-    # Creating ec2 instances
+    # Creating 3 ec2 instances for etcd cluster
     etcd_insts = create_ec2_nodes(sec_grp_id, subnet_id, 'saavi', 3, acc_id)
     print(etcd_insts)
 
@@ -341,15 +341,18 @@ def etcd_gen_plot(latencies_dict):
 
 if __name__ == "__main__":
     acc_id = 133132736141
-    latencies = etcd_data_proc('etcd_logging.log')
-    etcd_gen_plot(latencies)
+    # latencies = etcd_data_proc('etcd_logging.log')
+    # etcd_gen_plot(latencies)
+
+    # sec_grp_id = 'sg-0dbe7e01e76753407'
+    # subnet_id = 'subnet-05cbd55117fc1428c'
+    # etcd_insts = create_ec2_nodes(sec_grp_id, subnet_id, 'saavi', 1, acc_id)
+    
     # etcd_setup_master(acc_id)
-    # etcd_insts = [['i-08db15828db8804f2', '172.31.0.116', '3.93.182.47'], ['i-00d2f7e2f251f33d4', '172.31.0.232', '54.224.92.225'], ['i-0535f24b75038d791', '172.31.0.253', '54.83.93.180']]
-    # node_configs = ['ETCD_NAME=etcd0\nETCD_DATA_DIR=/var/lib/etcd\nETCD_LISTEN_CLIENT_URLS=http://172.31.0.116:2379,http://127.0.0.1:2379\nETCD_LISTEN_PEER_URLS=http://172.31.0.116:2380\nETCD_ADVERTISE_CLIENT_URLS=http://172.31.0.116:2379\nETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.31.0.116:2380\nETCD_INITIAL_CLUSTER=etcd1=http://172.31.0.116:2380,etcd2=http://172.31.0.232:2380,etcd3=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER_STATE=new\nETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster\n', 'ETCD_NAME=etcd1\nETCD_DATA_DIR=/var/lib/etcd\nETCD_LISTEN_CLIENT_URLS=http://172.31.0.232:2379,http://127.0.0.1:2379\nETCD_LISTEN_PEER_URLS=http://172.31.0.232:2380\nETCD_ADVERTISE_CLIENT_URLS=http://172.31.0.232:2379\nETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.31.0.232:2380\nETCD_INITIAL_CLUSTER=etcd1=http://172.31.0.116:2380,etcd2=http://172.31.0.232:2380,etcd3=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER_STATE=new\nETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster\n', 'ETCD_NAME=etcd2\nETCD_DATA_DIR=/var/lib/etcd\nETCD_LISTEN_CLIENT_URLS=http://172.31.0.253:2379,http://127.0.0.1:2379\nETCD_LISTEN_PEER_URLS=http://172.31.0.253:2380\nETCD_ADVERTISE_CLIENT_URLS=http://172.31.0.253:2379\nETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER=etcd1=http://172.31.0.116:2380,etcd2=http://172.31.0.232:2380,etcd3=http://172.31.0.253:2380\nETCD_INITIAL_CLUSTER_STATE=new\nETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster\n']
-    # for i in range(len(etcd_insts)):
-    #     inst_id = etcd_insts[i][0]
-    #     setup_etcd_on_ec2(inst_id, node_configs[i])
+
+    
 
 
+# scp -i saavi.pem ubuntu@52.90.253.251:/home/ubuntu/exp/etcd_logging.log .
 
 # ansible-playbook site.yml -i inventory/my-cluster/hosts.ini --private-key ../inventory/vm-private.pem

@@ -15,6 +15,7 @@ etcd2_ip = '172.31.0.20'
 etcd3_ip = '172.31.0.213'
 etcd_hosts = ["http://{}:2379".format(etcd1_ip), "http://{}:2379".format(etcd2_ip), "http://{}:2379".format(etcd3_ip)]
 
+
 try:
     etcd = etcd3.client(host='172.31.0.15', port=2379)
     print(f"Connection success!, etcd version: {etcd.status().version}")
@@ -86,28 +87,55 @@ def set_watch_key(key: str):
         print(f"Stopped watching key: {key}")
         etcd.cancel_watch(watch_id)
     
-
 def string_to_list(string):
     string = string.strip("[]").strip()
     elements = [int(element.strip()) for element in string.split(",")]
     return elements
 
-def main():
-    parser = argparse.ArgumentParser(description='Description of your program')
-    parser.add_argument('--ksizes', help='Key sizes to run exp on')
-    parser.add_argument('--iters', help='Number of watch measurements')
-    parser.add_argument('--val_size', help='Number of watch measurements')
+'''
+To create iter number of keys for each ksize and compute watch latency
+'''
+def watch_latency_exp_runner(ksizes, iters, val_size):
+    # generate iter number of keys for each key size
+    key_list = []
+    for i in range(iters):
+        for ks in ksizes:
+            temp_key = generate_rand_string(ks)
+            key_list.append(temp_key)
+    print(f"Key list len: {len(key_list)}")
+    # Setting watch on key
+    # watch_threads = []
+    # for key in key_list:
+    #     try:
+    #         thread = threading.Thread(target=set_watch_key, args=(key,))
+    #         thread.start()
+    #         watch_threads.append(thread)
+    #     except Exception as e:
+    #         print(f"Setting watch on key {key} failed with error {e}")
+    # print(f"Setup {len(watch_threads)} number of threads for watching")
     
-    args = parser.parse_args()
-    ksizes = string_to_list(args.ksizes)
-    iters = int(args.iters)
-    val_size = int(args.val_size)
+    val = generate_rand_string(val_size)
+    for key in key_list:
+        thread = threading.Thread(target=set_watch_key, args=(key,))
+        thread.start()
+        send_time = time.time()
+        etcd_put_kv(key, val)
+        key_size = get_size(key)
+        log_data = {'Key': key, 'Event': 'PUT', 'KeySize': key_size, 'KeyVersion': 1, 'time_stamp': send_time}
+        print(log_data)
+        logger.info(json.dumps(log_data))
+        thread.join()
 
+'''
+Creates one key for each ksize and keeps modifing it for a minute.
+Keys are modified in a round robin fashion continously.
+Values need to be recorded only when the CPU utilization% is above 75%
+'''
+def watch_throughput_exp_runner(ksizes, iters, val_size):
     key_list = [] # list to store keys of given sizes
     for ksize in ksizes:
         temp_key = generate_rand_string(ksize)
         key_list.append(temp_key)
-
     print(key_list)
 
     # Setting watch on key
@@ -120,10 +148,10 @@ def main():
         except Exception as e:
             print(f"Setting watch on key {key} failed with error {e}")
 
-    # put keys and modify them n-1 times
+    # put keys and modify them n-1 times in round robin
     val = generate_rand_string(val_size)
-    for key in key_list:
-        for i in range(iters):
+    for i in range(iters):
+        for key in key_list:
             send_time = time.time()
             if i == 0:
                 etcd_put_kv(key, val)
@@ -135,11 +163,29 @@ def main():
             logger.info(json.dumps(log_data))
 
 
-'''
-Sample run command:
-python3.7 etcd_watch_script.py --ksizes [5,10] --iters 3 --val_size 10
-'''
+def main():
+    parser = argparse.ArgumentParser(description='Description of your program')
+    parser.add_argument('--ksizes', help='Key sizes to run exp on')
+    parser.add_argument('--iters', help='Number of watch measurements')
+    parser.add_argument('--val_size', help='Number of watch measurements')
+    parser.add_argument('--exp_type', help='Latency or Throughput experiment') # latency or throughput
 
+    args = parser.parse_args()
+    ksizes = string_to_list(args.ksizes)
+    iters = int(args.iters)
+    val_size = int(args.val_size)
+    exp_type = args.exp_type
+
+    if exp_type == 'latency':
+        watch_latency_exp_runner(ksizes, iters, val_size)
+    elif exp_type == 'throughput':
+        watch_throughput_exp_runner(ksizes, iters, val_size)
+
+'''
+Note: delete etcd_logging.log before running
+Sample run command:
+python3.7 etcd_watch_script.py --ksizes [5,10] --iters 3 --val_size 10 --exp_type latency
+'''
 if __name__ == "__main__":
     main()
     # set_watch_key("key1")

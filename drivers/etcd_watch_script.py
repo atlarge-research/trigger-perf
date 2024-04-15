@@ -6,7 +6,7 @@ import time
 import logging
 import json
 import traceback
-
+import psutil
 import etcd3.exceptions
 
 # Connecting to etcd cluster
@@ -17,7 +17,7 @@ etcd_hosts = ["http://{}:2379".format(etcd1_ip), "http://{}:2379".format(etcd2_i
 
 
 try:
-    etcd = etcd3.client(host='172.31.0.15', port=2379)
+    etcd = etcd3.client(host='172.31.0.217', port=2379)
     print(f"Connection success!, etcd version: {etcd.status().version}")
 except etcd3.exceptions.ConnectionFailedError as e:
     print(e)
@@ -65,7 +65,7 @@ def etcd_update_kv(key: str, new_val):
 '''
 Function to set watch on given key 
 '''
-def watch_callback(event, key):
+def watch_callback(event, key, watch_flag):
     # print(event.events)
     for e in event.events:
         recv_time = time.time()
@@ -77,15 +77,36 @@ def watch_callback(event, key):
         print(log_data)
         logger.info(json.dumps(log_data))
         # print(f"Key {key} has been updated, new value is")
+        if watch_flag == -1: # Throughput run
+            return
+        else:   # Latency run
+            watch_flag.set()
+            return 
 
-def set_watch_key(key: str):
-    watch_id = etcd.add_watch_callback(key, lambda event: watch_callback(event, key))
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        print(f"Stopped watching key: {key}")
-        etcd.cancel_watch(watch_id)
+'''
+Sets watch on a given key
+for latency exp: exits after one watch event
+for throughput exp: keeps looping until keyboard intr
+Args: Watch flag is -1 in throughput experiment
+'''
+def set_watch_key(key: str, watch_flag):
+    if watch_flag == -1: # Throughput experiment
+        watch_id = etcd.add_watch_callback(key, lambda event: watch_callback(event, key, watch_flag))
+        try:
+            while True:
+                pass
+        except KeyboardInterrupt:
+            print(f"Stopped watching key: {key}")
+            etcd.cancel_watch(watch_id)
+    else:
+        watch_id = etcd.add_watch_callback(key, lambda event: watch_callback(event, key, watch_flag))
+        try:
+            watch_flag.wait()
+        except KeyboardInterrupt:
+            print(f"Stopped watching key: {key}")
+        finally:
+            etcd.cancel_watch(watch_id)
+            return
     
 def string_to_list(string):
     string = string.strip("[]").strip()
@@ -103,35 +124,32 @@ def watch_latency_exp_runner(ksizes, iters, val_size):
             temp_key = generate_rand_string(ks)
             key_list.append(temp_key)
     print(f"Key list len: {len(key_list)}")
-    # Setting watch on key
-    # watch_threads = []
-    # for key in key_list:
-    #     try:
-    #         thread = threading.Thread(target=set_watch_key, args=(key,))
-    #         thread.start()
-    #         watch_threads.append(thread)
-    #     except Exception as e:
-    #         print(f"Setting watch on key {key} failed with error {e}")
-    # print(f"Setup {len(watch_threads)} number of threads for watching")
     
+    time.sleep(3) # sleeping for watch setup to complete
     val = generate_rand_string(val_size)
+    threads = []
     for key in key_list:
-        thread = threading.Thread(target=set_watch_key, args=(key,))
-        thread.start()
+        watch_flag = threading.Event()
+        watch_thread = threading.Thread(target=set_watch_key, args=(key, watch_flag))
+        watch_thread.start()
+        time.sleep(1)
         send_time = time.time()
         etcd_put_kv(key, val)
         key_size = get_size(key)
         log_data = {'Key': key, 'Event': 'PUT', 'KeySize': key_size, 'KeyVersion': 1, 'time_stamp': send_time}
         print(log_data)
         logger.info(json.dumps(log_data))
-        thread.join()
+        watch_thread.join()
+    return
+        
 
 '''
 Creates one key for each ksize and keeps modifing it for a minute.
 Keys are modified in a round robin fashion continously.
 Values need to be recorded only when the CPU utilization% is above 75%
-'''
-def watch_throughput_exp_runner(ksizes, iters, val_size):
+'''            
+def watch_throughput_exp_runner(ksizes, val_size):
+    print("Throughput Experiment Started!")
     key_list = [] # list to store keys of given sizes
     for ksize in ksizes:
         temp_key = generate_rand_string(ksize)
@@ -141,8 +159,9 @@ def watch_throughput_exp_runner(ksizes, iters, val_size):
     # Setting watch on key
     watch_threads = []
     for key in key_list:
+        watch_flag = -1
         try:
-            thread = threading.Thread(target=set_watch_key, args=(key,))
+            thread = threading.Thread(target=set_watch_key, args=(key,watch_flag))
             thread.start()
             watch_threads.append(thread)
         except Exception as e:
@@ -150,17 +169,25 @@ def watch_throughput_exp_runner(ksizes, iters, val_size):
 
     # put keys and modify them n-1 times in round robin
     val = generate_rand_string(val_size)
-    for i in range(iters):
+    exp_start_time = time.time()
+    end_time = exp_start_time + 60 
+    ver = 0 # key version number
+    while time.time() < end_time:
         for key in key_list:
             send_time = time.time()
-            if i == 0:
-                etcd_put_kv(key, val)
-            else:
-                etcd_update_kv(key, val)
+            if ver % 5 == 0:
+                    cpu_utilization = psutil.cpu_percent()
+                    cu = cpu_utilization # flag to indicate if cpu utilization is above 75%
+                # etcd_put_kv(key, val)
+            # else:
+            #     etcd_update_kv(key, val)
+            etcd_put_kv(key, val)
             key_size = get_size(key)
-            log_data = {'Key': key, 'Event': 'PUT', 'KeySize': key_size, 'KeyVersion': i+1, 'time_stamp': send_time}
+            log_data = {'Key': key, 'Event': 'PUT', 'KeySize': key_size, 'KeyVersion': ver+1, 'time_stamp': send_time, 'CPU': cu}
             print(log_data)
             logger.info(json.dumps(log_data))
+        ver += 1
+    print("Throughput Experiment Complete!")
 
 
 def main():
@@ -179,12 +206,13 @@ def main():
     if exp_type == 'latency':
         watch_latency_exp_runner(ksizes, iters, val_size)
     elif exp_type == 'throughput':
-        watch_throughput_exp_runner(ksizes, iters, val_size)
+        watch_throughput_exp_runner(ksizes, val_size)
 
 '''
 Note: delete etcd_logging.log before running
 Sample run command:
 python3.7 etcd_watch_script.py --ksizes [5,10] --iters 3 --val_size 10 --exp_type latency
+python3.7 etcd_watch_script.py --ksizes [5,10] --iters 3 --val_size 10 --exp_type throughput
 '''
 if __name__ == "__main__":
     main()

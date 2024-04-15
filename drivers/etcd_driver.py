@@ -318,12 +318,10 @@ def etcd_data_proc(log_file):
         trigger_events = trigger_events.set_index(['Key', 'KeyVersion'])
         merged_events = put_events.join(trigger_events, lsuffix='_PUT', rsuffix='_TRIGGER', how='inner')
         # print(merged_events)
-        merged_events['Timestamp_Difference'] = merged_events['time_stamp_TRIGGER'] - merged_events['time_stamp_PUT']
+        merged_events['Timestamp_Difference'] = 1000*(merged_events['time_stamp_TRIGGER'] - merged_events['time_stamp_PUT'])
         
         res[ksize] = merged_events['Timestamp_Difference'].tolist()
-    
     print(res)
-
     return res
     
 
@@ -341,18 +339,18 @@ def etcd_gen_plot(latencies_dict):
 
 if __name__ == "__main__":
     acc_id = 133132736141
-    # latencies = etcd_data_proc('etcd_logging.log')
-    # etcd_gen_plot(latencies)
+    latencies = etcd_data_proc('etcd_logging.log')
+    etcd_gen_plot(latencies)
 
     # sec_grp_id = 'sg-0dbe7e01e76753407'
     # subnet_id = 'subnet-05cbd55117fc1428c'
-    # etcd_insts = create_ec2_nodes(sec_grp_id, subnet_id, 'saavi', 1, acc_id)
+    # etcd_insts = create_ec2_nodes(sec_grp_id, subnet_id, 'saavi', 3, acc_id)
     
     # etcd_setup_master(acc_id)
 
     
 
 
-# scp -i saavi.pem ubuntu@52.90.253.251:/home/ubuntu/exp/etcd_logging.log .
+# scp -i saavi.pem ubuntu@34.203.208.248:/home/ubuntu/exp/etcd_logging.log .
 
 # ansible-playbook site.yml -i inventory/my-cluster/hosts.ini --private-key ../inventory/vm-private.pem

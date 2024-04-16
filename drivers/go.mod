@@ -3,6 +3,7 @@ module ritul/triggerperf
 go 1.22.2
 
 require (
+	github.com/akamensky/argparse v1.4.0 // indirect
 	github.com/coreos/etcd v3.3.27+incompatible // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect

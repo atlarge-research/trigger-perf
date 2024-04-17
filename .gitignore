@@ -1,7 +1,7 @@
 __pycache__\
-logs\
+logs/*
 check.py
-plots\
+plots/*
 drivers/saavi.pem
 drivers/etcd_log.log
 drivers/etcd_dict_*

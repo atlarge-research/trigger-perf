@@ -10,13 +10,13 @@ key:
   size_start: "10" #bytes
   size_end: "31" #bytes
   jumps: "10" 
-  sizes_list: "[20, 40, 80, 120, 160]"
+  sizes_list: "[93]"
 
 value:
-  size: "100" #bytes
+  size: "889" #bytes
   
 num_readers: "1"
 
-num_iters: "30" # to be sent to intial-lmd
+num_iters: "50" # to be sent to intial-lmd
 
 # write code to verify and error check config inputs

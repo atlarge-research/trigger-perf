@@ -65,19 +65,22 @@ def lambda_handler(event, context):
     kjumps = int(event.get('kjumps'))
     vsize = int(event.get('vsize'))
     num_readers = int(event.get('num_readers'))
+    iters = int(event.get('iters'))
     
     # Get key sizes required
-    key_sizes_to_write = []
-    temp = ksize_start
+    key_sizes_to_write = json.loads(event.get('ksizes_list')) # when ksizes are passed as list in config
+    # key_sizes_to_write = []
+    # temp = ksize_start
 
-    while temp < ksize_end:
-        key_sizes_to_write.append(temp)
-        temp += kjumps
+    # while temp < ksize_end:
+    #     key_sizes_to_write.append(temp)
+    #     temp += kjumps
         
-    print(key_sizes_to_write)
     # Key and data generation
     for i in key_sizes_to_write:
-        for j in range(25):
+        print(f"In key_sizes_to_write loop for key {i}, type: {type(i)}")
+        # i = int(i)
+        for j in range(iters): #iters to be run
             e_id = gen_event_id()
             key = gen_prefix_key(i, run_id) # Key prefixed with run id (10 bytes)
             data = gen_prefix_key(vsize, e_id) # Data prefixed with event id (10 bytes)

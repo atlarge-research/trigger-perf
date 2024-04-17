@@ -177,11 +177,11 @@ def create_lambda_function(acc_id, fn_name):
     lambda_client = boto3.client('lambda', region_name='us-east-1')  # Replace with your desired region
     
     # Upload Lambda function code (ZIP file)
-    with zipfile.ZipFile(f'./aws/lambdas/{fn_name}.zip', 'w') as zip_file:
+    with zipfile.ZipFile(f'./aws_lambdas/lambdas/{fn_name}.zip', 'w') as zip_file:
         # Add your Lambda function files to the ZIP file
-        zip_file.write(f'./aws/lambdas/{fn_name}.py', arcname=f'{fn_name}.py')
+        zip_file.write(f'./aws_lambdas/lambdas/{fn_name}.py', arcname=f'{fn_name}.py')
 
-    with open(f'./aws/lambdas/{fn_name}.zip', 'rb') as code_file:
+    with open(f'./aws_lambdas/lambdas/{fn_name}.zip', 'rb') as code_file:
         function_code = code_file.read()
 
     # Create or update Lambda function

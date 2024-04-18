@@ -48,8 +48,6 @@ def calc_latency(w_csv_path, r_csv_path, run_id):
                 ksize_latencies.append(latency)
             except Exception as err:
                 print(f"Event id {j} not received by read-lmd")
-                # print(err)
-            # get latency for one event
 
         # print(f"Ksize {i}: {ksize_latencies}")
         overall_latencies.append(ksize_latencies)

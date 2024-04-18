@@ -218,3 +218,4 @@ if __name__ == "__main__":
     main()
     # set_watch_key("key1")
     # etcd_put_kv("key1", "bsdk")
+    # python3.7 etcd_watch_script.py --ksizes [27,59,93] --iters 50 --val_size 889 --exp_type latency

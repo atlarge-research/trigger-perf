@@ -349,7 +349,7 @@ if __name__ == "__main__":
     # etcd_setup_master(acc_id)
 
     
-
+# scp -i saavi.pem ubuntu@184.72.90.231:/home/ubuntu/exp/etcd_logging.log .
 
 # scp -i saavi.pem ubuntu@34.203.208.248:/home/ubuntu/exp/etcd_logging.log .
 

@@ -17,34 +17,16 @@ def run_command(cmd):
 '''
 Creates a bucket in us-east-1 region
 '''
-# def create_s3_bucket(bucket_name):
 
-#     create_s3bucket_cmd = [
-#         'aws', 's3api', 'create-bucket', \
-#         '--bucket', bucket_name, \
-#         '--create-bucket-configuration', \
-#         'LocationConstraint=us-east-1' 
-#     ]
-#     success, output = run_command(create_s3bucket_cmd)
-#     if success:
-#         print(f"-> S3 bucket {bucket_name} setup done")
-#     else:
-#         print(f"ERROR: S3 bucket {bucket_name} setup failed")
-#         print(output)
-#     return 0
-
-def create_s3_bucket(bucket_name):
+def create_s3_bucket(bucket_name, region='us-east-1'):
     region = 'us-east-1'  # change if needed
 
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client('s3', region_name=region)
 
     try:
         # Create S3 bucket
         s3_client.create_bucket(
-            Bucket=bucket_name,
-            CreateBucketConfiguration={
-                'LocationConstraint': region
-            }
+            Bucket=bucket_name
         )
         print(f"-> S3 bucket {bucket_name} setup done")
         return True
@@ -57,24 +39,43 @@ def create_s3_bucket(bucket_name):
 '''
 Grants Lambda permission to be invoked by a S3 bucket:- for 'read-lmd' only
 '''
-def s3_lambda_invoke_permission(fn_name, bucket_name, acc_id):
-    arn = f"arn:aws:s3:::{bucket_name}"
-    s3_lambda_invoke_permission_cmd = [ 'aws', 'lambda', 'add-permission', \
-                                        '--function-name', fn_name, \
-                                        '--principal', 's3.amazonaws.com', \
-                                        '--statement-id', 's3invoke', \
-                                        '--action', 'lambda:InvokeFunction', \
-                                        '--source-arn', arn, \
-                                        '--source-account', str(acc_id) \
-                                    ]
-    success, output = run_command(s3_lambda_invoke_permission_cmd)
-    if success:
-        print(f"-> S3-Lambda (read-lmd) permissions set up")
-    else:
-        print(f"ERROR: S3-Lambda (read-lmd) permission setup failed")
+# def s3_lambda_invoke_permission(fn_name, bucket_name, acc_id):
+#     arn = f"arn:aws:s3:::{bucket_name}"
+#     s3_lambda_invoke_permission_cmd = [ 'aws', 'lambda', 'add-permission', \
+#                                         '--function-name', fn_name, \
+#                                         '--principal', 's3.amazonaws.com', \
+#                                         '--statement-id', 's3invoke', \
+#                                         '--action', 'lambda:InvokeFunction', \
+#                                         '--source-arn', arn, \
+#                                         '--source-account', str(acc_id) \
+#                                     ]
+#     success, output = run_command(s3_lambda_invoke_permission_cmd)
+#     if success:
+#         print(f"-> S3-Lambda (read-lmd) permissions set up")
+#     else:
+#         print(f"ERROR: S3-Lambda (read-lmd) permission setup failed")
     
-    return 0
+#     return 0
 
+def s3_lambda_invoke_permission(fn_name, bucket_name, acc_id, region='us-east-1'):
+    lambda_client = boto3.client('lambda', region_name=region)
+
+    try:
+        arn = f"arn:aws:s3:::{bucket_name}"
+        lambda_client.add_permission(
+            FunctionName=fn_name,
+            StatementId='s3invoke',
+            Action='lambda:InvokeFunction',
+            Principal='s3.amazonaws.com',
+            SourceArn=arn,
+            SourceAccount=str(acc_id)
+        )
+        print("-> S3-Lambda (read-lmd) permissions set up")
+        return True
+    except Exception as e:
+        print(f"ERROR: S3-Lambda (read-lmd) permission setup failed: {str(e)}")
+        return False
+    
 
 '''
 Sets up S3 bucket Event notification to trigger 'read-lmd'

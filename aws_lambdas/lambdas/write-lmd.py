@@ -19,31 +19,60 @@ def s3_put_handler(file_key, data, h_arr):
     s3_client = boto3.client('s3')
     s3_bucket = 'test-buck-ritul'
     metadata = {'e_id': str(0)} # Remove later
-    put_time = time.time()
-    resp = s3_client.put_object(
-        Bucket=s3_bucket,
-        Key=file_key,
-        Body=json.dumps(data),
-        Metadata=metadata,
-        ContentType='application/json'
-    )
-    xar_id = resp['ResponseMetadata']['HTTPHeaders']['x-amz-request-id']
-    log_data = {
-    'run_id': h_arr[0],
-    'xar_id': xar_id,
-    'e_id': h_arr[4],
-    'event': 'WRITE',
-    'exec_start_time': h_arr[3],
-    'put_time': put_time,
-    'key': file_key,
-    'key_size': h_arr[1],
-    'value_size': h_arr[2]
-    }
-    return log_data
+    try:
+        put_time = time.time()
+        resp = s3_client.put_object(
+            Bucket=s3_bucket,
+            Key=file_key,
+            Body=json.dumps(data),
+            Metadata=metadata,
+            ContentType='application/json'
+        )
+        xar_id = resp['ResponseMetadata']['HTTPHeaders']['x-amz-request-id']
+        log_data = {
+        # 'run_id': h_arr[0],
+        'run_id': xar_id, # xar_id is used as 
+        'e_id': h_arr[4],
+        'event': 'WRITE',
+        'exec_start_time': h_arr[3],
+        'put_time': put_time,
+        'key': file_key,
+        'key_size': h_arr[1],
+        'value_size': h_arr[2]
+        }
+        return log_data
+    except Exception as e:
+        print(f"S3 put event failed: {e}")
 
 
-def s3Express_put_object():
-    pass
+def s3Express_put_handler(file_key, data, h_arr):
+    s3_client = boto3.client('s3')
+    s3_bucket = 'ritul-buck--use1-az4--x-s3' # naming format automation to be completed
+    metadata = {'e_id': str(0)} # Remove later
+    try:
+        put_time = time.time()
+        resp = s3_client.put_object(
+            Bucket=s3_bucket,
+            Key=file_key,
+            Body=json.dumps(data),
+            Metadata=metadata,
+            ContentType='application/json'
+        )
+        xar_id = resp['ResponseMetadata']['HTTPHeaders']['x-amz-request-id']
+        log_data = {
+        # 'run_id': h_arr[0],
+        'run_id': xar_id, # xar_id is used as 
+        'e_id': h_arr[4],
+        'event': 'WRITE',
+        'exec_start_time': h_arr[3],
+        'put_time': put_time,
+        'key': file_key,
+        'key_size': h_arr[1],
+        'value_size': h_arr[2]
+        }
+        return log_data
+    except Exception as e:
+        print(f"S3 put event failed: {e}")
 
 '''
 Puts the key and data into dynamo table
@@ -101,11 +130,13 @@ def lambda_handler(event, context):
 
     # Putting object into required data store
     if ds == "s3":
-        log_data = s3_put_handler(file_key,data_to_write, handler_arr)
+        log_data = s3_put_handler(file_key, data_to_write, handler_arr)
+
     elif ds == "s3Express":
-        pass
+        log_data = s3Express_put_handler(file_key, data_to_write, handler_arr)
+
     elif ds == "dynamo":
-        log_data = dynamo_put_handler(file_key,data_to_write, handler_arr)
+        log_data = dynamo_put_handler(file_key, data_to_write, handler_arr)
 
     
     logger.info(json.dumps(log_data))

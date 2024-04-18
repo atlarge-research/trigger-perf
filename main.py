@@ -63,16 +63,16 @@ def main(payload):
     # Get the lambda logs
     print(f"Getting Lambda logs....")
     for i in tqdm(range(125), desc="Getting Lambda logs....."):
-        time.sleep(4) # change back to 4
+        time.sleep(8) # change back to 4
     get_lambda_logs("write-lmd", run_start_time, run_id)
     # time.sleep(75)
     get_lambda_logs("read-lmd", run_start_time, run_id)
     
-    # Data processing
-    latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", run_id)
-    print(latencies)
-    ksizes_list = test_configs['key']['sizes_list']
-    gen_box_plot(latencies, run_id, ksizes_list) 
+    # Dynamo Data processing
+    # latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", run_id)
+    # print(latencies)
+    # ksizes_list = test_configs['key']['sizes_list']
+    # gen_box_plot(latencies, run_id, ksizes_list) 
         
     return 0
 

@@ -150,28 +150,7 @@ def attach_role_to_ec2(inst_id, role_name, inst_prof_arn):
         return None
 
 
-# def create_lambda_function(acc_id, fn_name):
-    
-#     runtime = 'python3.8'
-#     handler = f"{fn_name}.lambda_handler"
-#     zip_file = f"fileb://aws/lambdas/{fn_name}.zip"
-#     role_arn = f"arn:aws:iam::{acc_id}:role/myLambdaRole"
-# create_lambda_cmd = ['aws', 'lambda', 'create-function', \
-#                      '--function-name', fn_name, \
-#                      '--runtime', runtime, \
-#                      '--handler', handler, \
-#                      '--zip-file', zip_file, \
-#                      '--role', role_arn, \
-#                      '--logging-config', 'LogFormat=JSON' \
-#                     ]
 
-#     success, output = run_command(create_lambda_cmd)
-#     if success:
-#         print(f"-> Lambda function {fn_name} setup done")
-#     else:
-#         print(f"ERROR: Lambda function {fn_name} setup failed")
-#         print(output)
-#     return 0
 
 def create_lambda_function(acc_id, fn_name):
     lambda_client = boto3.client('lambda', region_name='us-east-1')  # Replace with your desired region

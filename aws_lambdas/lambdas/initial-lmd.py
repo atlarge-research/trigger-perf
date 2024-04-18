@@ -41,7 +41,7 @@ def gen_event_id():
     return e_id
 
 '''
-Generates a prefixed key of given size with the first 10 bytes
+Generates a prefixed key of given size with the first 7 bytes
 as the run_id.
 '''
 def gen_prefix_key(ksize: int, id: str):

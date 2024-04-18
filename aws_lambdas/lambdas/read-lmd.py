@@ -25,7 +25,7 @@ def s3_recv_handler(event, readfn_start_time):
     vsize = 0
 
     log_data = {
-        'xar_id': xar_id,
+        'run_id': xar_id, # xar_id is used as run_id
         'event': 'RECV',
         'exec_start_time': readfn_start_time,
         'put_time': 0,
@@ -68,11 +68,11 @@ def lambda_handler(event, context):
     print(event)    
 
     # check what datastore triggered this function & handle
-    
     if event['Records'][0]['eventSource'] == 'aws:dynamodb':
         log_data = dynamo_recv_handler(event, readfn_start_time)
-    # elif event['Records'][0]['s3']:
-    #     log_data = dynamo_recv_handler(event, readfn_start_time)
+    elif 'Records' in event and 's3' in event['Records'][0]:
+        log_data = s3_recv_handler(event, readfn_start_time)
+        # insert logic to check if s3 or s3express 
     
     logger.info(json.dumps(log_data))
 

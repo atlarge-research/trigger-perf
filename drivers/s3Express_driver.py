@@ -1,17 +1,11 @@
 import logging
-import boto3
 from botocore.exceptions import ClientError
 
-def create_s3Express_bucket(s3_client, bucket_name, availability_zone):
-    '''
-    Create a directory bucket in a specified Availability Zone
+import boto3
 
-    :param s3_client: boto3 S3 client
-    :param bucket_name: Bucket to create; for example, 'doc-example-bucket--usw2-az1--x-s3'
-    :param availability_zone: String; Availability Zone ID to create the bucket in, for example, 'usw2-az1'
-    :return: True if bucket is created, else False
-    '''
+def create_s3Express_bucket(bucket_name, availability_zone='use1-az4', region='us-east-1'):
 
+    s3_client = boto3.client('s3', region_name=region)
     try:
         bucket_config = {
                 'Location': {
@@ -23,19 +17,20 @@ def create_s3Express_bucket(s3_client, bucket_name, availability_zone):
                     'DataRedundancy': 'SingleAvailabilityZone'
                 }
             }
-        s3_client.create_bucket(
-            Bucket = bucket_name,
-            CreateBucketConfiguration = bucket_config
+        response = s3_client.create_bucket(
+            Bucket=bucket_name,
+            CreateBucketConfiguration=bucket_config
         )
-    except ClientError as e:
-        logging.error(e)
+        print(f"-> S3 Express directory bucket '{bucket_name}' setup done")
+        return True
+    except Exception as e:
+        print(f"ERROR: S3 Express directory bucket '{bucket_name}' setup failed. {str(e)}")
         return False
-    return True
+
 
 
 if __name__ == '__main__':
-    bucket_name = 'BUCKET_NAME'
-    region = 'us-west-2'
-    availability_zone = 'usw2-az1'
-    s3_client = boto3.client('s3', region_name = region)
-    create_s3Express_bucket(s3_client, bucket_name, availability_zone)
+    bucket_name = 'ritul-buck--use1-az4--x-s3'
+    region = 'us-east-1'
+    availability_zone = 'use1-az4'
+    create_s3Express_bucket(bucket_name, availability_zone, region)

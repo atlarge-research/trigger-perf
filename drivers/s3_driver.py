@@ -57,14 +57,14 @@ Grants Lambda permission to be invoked by a S3 bucket:- for 'read-lmd' only
     
 #     return 0
 
-def s3_lambda_invoke_permission(fn_name, bucket_name, acc_id, region='us-east-1'):
+def s3_lambda_invoke_permission(fn_name, bucket_name, acc_id, statement_id, region='us-east-1'):
     lambda_client = boto3.client('lambda', region_name=region)
 
     try:
         arn = f"arn:aws:s3:::{bucket_name}"
         lambda_client.add_permission(
             FunctionName=fn_name,
-            StatementId='s3invoke',
+            StatementId=statement_id,
             Action='lambda:InvokeFunction',
             Principal='s3.amazonaws.com',
             SourceArn=arn,
@@ -80,30 +80,60 @@ def s3_lambda_invoke_permission(fn_name, bucket_name, acc_id, region='us-east-1'
 '''
 Sets up S3 bucket Event notification to trigger 'read-lmd'
 '''
-def s3_lambda_event_notif_setup(fn_name, bucket_name, acc_id):
+# def s3_lambda_event_notif_setup(fn_name, bucket_name, acc_id):
 
-    notif_config = f'''
-                        {{
-                        "LambdaFunctionConfigurations": [
-                            {{
-                            "LambdaFunctionArn": "arn:aws:lambda:us-east-1:{acc_id}:function:{fn_name}",
-                            "Events": ["s3:ObjectCreated:*"]
-                            }}                                 
-                        ]
-                        }}
-                    '''
+#     notif_config = f'''
+#                         {{
+#                         "LambdaFunctionConfigurations": [
+#                             {{
+#                             "LambdaFunctionArn": "arn:aws:lambda:us-east-1:{acc_id}:function:{fn_name}",
+#                             "Events": ["s3:ObjectCreated:*"]
+#                             }}                                 
+#                         ]
+#                         }}
+#                     '''
     
-    s3_lambda_event_notif_setup_cmd = [ 'aws', 's3api', 'put-bucket-notification-configuration', \
-                                        '--bucket', bucket_name, \
-                                        '--notification-configuration', notif_config \
-                                        ]
-    success, output = run_command(s3_lambda_event_notif_setup_cmd)
-    if success:
-        print(f"-> S3-read-lmd Event notification set up")
-    else:
-        print(f"ERROR: S3-read-lmd Event notification failed")
+#     s3_lambda_event_notif_setup_cmd = [ 'aws', 's3api', 'put-bucket-notification-configuration', \
+#                                         '--bucket', bucket_name, \
+#                                         '--notification-configuration', notif_config \
+#                                         ]
+#     success, output = run_command(s3_lambda_event_notif_setup_cmd)
+#     if success:
+#         print(f"-> S3-read-lmd Event notification set up complete")
+#     else:
+#         print(f"ERROR: S3-read-lmd Event notification failed{output}")
     
-    return 0
+#     return 0
+def s3_lambda_event_notif_setup(fn_name, bucket_name, acc_id, region):
+    lambda_arn = f"arn:aws:lambda:{region}:{acc_id}:function:{fn_name}"
+    
+    lambda_client = boto3.client('lambda', region_name=region)
+    s3_client = boto3.client('s3', region_name=region)
+    
+    try:
+        response = s3_client.put_bucket_notification_configuration(
+            Bucket=bucket_name,
+            NotificationConfiguration={
+                'LambdaFunctionConfigurations': [
+                    {
+                        'LambdaFunctionArn': lambda_arn,
+                        'Events': ['s3:ObjectCreated:*', 's3:ObjectModified:*']
+                    }
+                ]
+            }
+        )
+        print("-> S3-read-lmd Event notification set up complete")
+        return True
+    except Exception as e:
+        print(f"ERROR: S3-read-lmd Event notification failed: {str(e)}")
+        return False
+
+
+
+
+
+
+
 
 def s3_put_object(file_key, data):
     s3_client = boto3.client('s3')

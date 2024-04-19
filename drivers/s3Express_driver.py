@@ -18,6 +18,7 @@ def create_s3Express_bucket(bucket_name, availability_zone='use1-az4', region='u
                 }
             }
         response = s3_client.create_bucket(
+            # ACL='public-read-write',
             Bucket=bucket_name,
             CreateBucketConfiguration=bucket_config
         )

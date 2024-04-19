@@ -79,9 +79,16 @@ def main(payload):
 
 if __name__ == "__main__":
     acc_id = 133132736141
-    
-    main(payload)
-
+    s3_client = boto3.client('s3', region_name='us-east-1')
+    # main(payload)
+    metadata = {'e_id': str(0)}
+    resp = s3_client.put_object(
+        Bucket='ritul-express--use1-az4--x-s3',
+        Key="testkey",
+        Body=json.dumps('data'),
+        Metadata=metadata,
+        ContentType='application/json'
+    )
     # latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", 'e41e876')
     # print(latencies)
     # gen_box_plot(latencies, "b8396a3", [10, 20, 40, 80, 120, 160])

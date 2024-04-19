@@ -72,7 +72,7 @@ def s3Express_put_handler(file_key, data, h_arr):
         }
         return log_data
     except Exception as e:
-        print(f"S3 put event failed: {e}")
+        print(f"S3 Express put event failed: {e}")
 
 '''
 Puts the key and data into dynamo table

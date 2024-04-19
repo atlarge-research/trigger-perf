@@ -23,24 +23,31 @@ def setup_services(acc_id, ds, region): # Set up lambda functions & data store
     # create_lambda_function(acc_id, "read-lmd")
 
     # Datastore setup
-    if ds == "s3":
-        # create_s3_bucket("test-buck-ritul")
-        s3_lambda_invoke_permission("read-lmd", "test-buck-ritul", acc_id)
-        s3_lambda_event_notif_setup("read-lmd", "test-buck-ritul", acc_id)
-    elif ds == "s3Express":
-        availability_zone= 'use1-az4' # change if needed
-        create_s3Express_bucket("ritul-buck--use1-az4--x-s3", availability_zone, region)
-        s3_lambda_invoke_permission("read-lmd", "ritul-buck--use1-az4--x-s3", acc_id)
-        s3_lambda_event_notif_setup("read-lmd", "ritul-buck--use1-az4--x-s3", acc_id)
-        
-    elif ds == "dynamo":
-        create_dynamo_table("trigger-perf")
-        dynamo_lambda_streams_setup("trigger-perf", "read-lmd", acc_id)
-    elif ds == "aurora":
-        pass
+    try:
+        if ds == "s3":
+            statement_id = 's3invoke'
+            # create_s3_bucket("test-buck-ritul")
+            s3_lambda_invoke_permission("read-lmd", "test-buck-ritul", acc_id, statement_id, region)
+            s3_lambda_event_notif_setup("read-lmd", "test-buck-ritul", acc_id, region)
 
-    print(f"## {ds} Setup Complete!")
-    pass
+        elif ds == "s3Express":
+            availability_zone= 'use1-az4' # change if needed
+            statement_id = 's3Expressinvoke'
+            create_s3Express_bucket("ritul-express--use1-az4--x-s3", availability_zone, region)
+            s3_lambda_invoke_permission("read-lmd", "ritul-express--use1-az4--x-s3", acc_id, statement_id, region)
+            s3_lambda_event_notif_setup("read-lmd", "ritul-express--use1-az4--x-s3", acc_id, region)
+            
+        elif ds == "dynamo":
+            create_dynamo_table("trigger-perf")
+            dynamo_lambda_streams_setup("trigger-perf", "read-lmd", acc_id)
+
+        elif ds == "aurora":
+            pass
+
+        print(f"## {ds} Setup Complete!")
+    except Exception as e:
+        print(f"{ds} setup failed with error: {e}")
+
 
 def main():
     test_configs = read_config('config.yaml')

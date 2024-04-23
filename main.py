@@ -58,15 +58,15 @@ def main(payload):
     
     # Sleeping for full chain to complete
     print("Waiting for full chain to complete...")
-    time.sleep(50)
+    time.sleep(20) #50 is a good number
 
     # Get the lambda logs
     print(f"Getting Lambda logs....")
-    for i in tqdm(range(125), desc="Getting Lambda logs....."):
-        time.sleep(8) # change back to 4
+    for i in tqdm(range(100), desc="Getting Lambda logs....."):
+        time.sleep(2) # 4 is a good number
     get_lambda_logs("write-lmd", run_start_time, run_id)
     # time.sleep(75)
-    get_lambda_logs("read-lmd", run_start_time, run_id)
+    # get_lambda_logs("pg-recv", run_start_time, run_id) #change to pg-recv for aurora else read-lmd
     
     # Dynamo Data processing
     # latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", run_id)
@@ -79,16 +79,8 @@ def main(payload):
 
 if __name__ == "__main__":
     acc_id = 133132736141
-    s3_client = boto3.client('s3', region_name='us-east-1')
     # main(payload)
-    metadata = {'e_id': str(0)}
-    resp = s3_client.put_object(
-        Bucket='ritul-express--use1-az4--x-s3',
-        Key="testkey",
-        Body=json.dumps('data'),
-        Metadata=metadata,
-        ContentType='application/json'
-    )
+    get_lambda_logs("pg-recv", 1713886807.586133, 'f72a4b7')
     # latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", 'e41e876')
     # print(latencies)
     # gen_box_plot(latencies, "b8396a3", [10, 20, 40, 80, 120, 160])

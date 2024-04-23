@@ -265,16 +265,25 @@ def get_lambda_logs(lmd_fn, start_time, run_id):
             break
         # print("sleeping....")
         time.sleep(1)
-        
+    
     for result in query_status.get('results',[]):
+        # print(result)
         # print("RESULT\n")
-        log_value = result[1]['value']
-        lv_json = json.loads(log_value)
-        message = lv_json['message']
-        msg_json = json.loads(message)
-        res_logs.append(msg_json)
-    # print(res_logs)
-    # print(f"{lmd_fn} logs extracted")
+        ##### Works for Aurora
+        log_message = result[1]['value']
+        start_index = log_message.find('{')
+        end_index = log_message.rfind('}') + 1
+        json_data = log_message[start_index:end_index]
+        lv_json = json.loads(json_data)
+        res_logs.append(lv_json)
+        ##### Works for dynamo/S3
+        # log_value = result[1]['value']
+        # lv_json = json.loads(log_value)
+        # message = lv_json['message']
+        # msg_json = json.loads(message)
+        # res_logs.append(msg_json)
+
+    print(f"{lmd_fn} logs extracted!\n")
     print(res_logs)
     write_to_csv(f"logs/{lmd_fn}_logs.csv", res_logs, delimiter=',')
     # print(res_logs)

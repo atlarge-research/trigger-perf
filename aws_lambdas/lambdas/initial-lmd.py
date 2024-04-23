@@ -4,9 +4,9 @@ import hashlib
 import os
 import time
 
-def ds_write_lmd_func(key, data, ds, e_id, run_id):
+def ds_write_lmd_func(key, data, ds, e_id, run_id, event_iter):
         client = boto3.client('lambda')
-        payload = [key, data, e_id, run_id, ds]
+        payload = [key, data, e_id, run_id, ds, event_iter]
         response = client.invoke(
         FunctionName='write-lmd',
         InvocationType='Event',
@@ -88,7 +88,7 @@ def lambda_handler(event, context):
             # Invoke send/write function
             print(f"INVOKING KEY SIZE: {i}\n")
     
-            resp = ds_write_lmd_func(key,data, data_store,e_id,run_id)
+            resp = ds_write_lmd_func(key,data, data_store,e_id,run_id, j)
             time.sleep(1)
 
     return {

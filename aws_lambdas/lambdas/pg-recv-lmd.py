@@ -9,7 +9,7 @@ def aurora_recv_handler(recvfn_start_time, event_iter):
         'event': 'RECV',
         'exec_start_time': recvfn_start_time,
         'put_time': 0,
-        'key': event_iter,
+        'key': str(event_iter),
         'key_size': '',
         'value_size': ''
     }
@@ -24,6 +24,7 @@ def lambda_handler(event, context):
     print(event)
     new_row = event['body']['new_row']
     event_iter = new_row['key']
+    print(f"Event iter: {event_iter}")
     value = new_row['value']
     
     log_data = aurora_recv_handler(recvfn_start_time, event_iter)

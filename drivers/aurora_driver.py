@@ -30,7 +30,8 @@ def aurora_create_table(cluster_arn, secret_arn, database_name, table_name, regi
         CREATE TABLE {table_name} (
             id SERIAL PRIMARY KEY,
             key VARCHAR(255),
-            value VARCHAR(255)
+            send_ts VARCHAR(255),
+            value VARCHAR(900)
         )
     """
     try:
@@ -44,6 +45,24 @@ def aurora_create_table(cluster_arn, secret_arn, database_name, table_name, regi
     except Exception as e:
         print(f"ERROR creating table: {e}")
 
+def aurora_delete_table(cluster_arn, secret_arn, database_name, table_name, region='us-east-1'):
+    # Create a boto3 client for RDS Data API
+    client = boto3.client('rds-data', region_name=region)
+
+    # SQL statement to delete the table
+    sql_statement = f"DROP TABLE {table_name}"
+
+    try:
+        # Execute the SQL statement to delete the table
+        resp = client.execute_statement(
+            resourceArn=cluster_arn,
+            secretArn=secret_arn,
+            database=database_name,
+            sql=sql_statement
+        )
+        print("Table deleted successfully")
+    except Exception as e:
+        print(f"ERROR deleting table: {e}")
 
 def aurora_insert_data(cluster_arn, secret_arn, database_name, table_name, key, value, region='us-east-1'):
     client = boto3.client('rds-data', region_name=region)
@@ -150,9 +169,10 @@ if __name__ == '__main__':
     db_name = "postgres"
     table_name = 'kv_table'
     lambda_arn = 'arn:aws:lambda:us-east-1:133132736141:function:pg-recv'
-    # create_lambda_trigger(db_name, table_name, lambda_arn, region_name='us-east-1')
+    create_lambda_trigger(db_name, table_name, lambda_arn, region_name='us-east-1')
     # aurora_create_table(cluster_arn, secret_arn, db_name, table_name)
-    aurora_insert_data(cluster_arn, secret_arn, db_name, table_name, "test-key", "test-val")
+    # aurora_delete_table(cluster_arn, secret_arn, db_name, table_name, region='us-east-1')
+    # aurora_insert_data(cluster_arn, secret_arn, db_name, table_name, "test-key", "test-val")
     # aurora_latency_main_runner(cluster_arn, secret_arn, db_name, table_name, 3)
 
 

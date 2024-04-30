@@ -10,6 +10,7 @@ from utils.data_proc import *
 from utils.viz import *
 from drivers.aws import *
 from drivers.s3_driver import *
+from drivers.dynamo_driver import *
 
 # To read config file
 def read_config(file_path):
@@ -31,7 +32,8 @@ payload = {
     "vsize": test_configs['value']['size'],
     "num_readers": test_configs['num_readers'],
     "ksizes_list": test_configs['key']['sizes_list'],
-    "iters": test_configs['num_iters']
+    "iters": test_configs['num_iters'],
+    "validation_run": test_configs['validation_run']
 }
 
 
@@ -43,6 +45,7 @@ def main(payload):
     
     ds = test_configs['data_store']
     num_iters = test_configs['num_iters']
+
     print(f"\n{ds} experiment for {num_iters} iterations")
 
     run_start_time = time.time()
@@ -52,21 +55,18 @@ def main(payload):
 
     # Invokes the Initial lmd 
     lambda_invoke('initial-lmd', payload)
-
-    # Create a SNS notification to indicate initial-lmd completion
-
-    
+   
     # Sleeping for full chain to complete
     print("Waiting for full chain to complete...")
-    time.sleep(20) #50 is a good number
+    time.sleep(40) # 50 is a good number
 
     # Get the lambda logs
-    print(f"Getting Lambda logs....")
     for i in tqdm(range(100), desc="Getting Lambda logs....."):
-        time.sleep(2) # 4 is a good number
-    get_lambda_logs("write-lmd", run_start_time, run_id)
+        time.sleep(4) # 4 is a good number
+    get_lambda_logs("validation-lmd", run_start_time, run_id)
+    # get_lambda_logs("write-lmd", run_start_time, run_id)
     # time.sleep(75)
-    # get_lambda_logs("pg-recv", run_start_time, run_id) #change to pg-recv for aurora else read-lmd
+    get_lambda_logs("read-lmd", run_start_time, run_id) #change to pg-recv for aurora else read-lmd
     
     # Dynamo Data processing
     # latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", run_id)
@@ -79,8 +79,9 @@ def main(payload):
 
 if __name__ == "__main__":
     acc_id = 133132736141
-    # main(payload)
-    get_lambda_logs("pg-recv", 1713886807.586133, 'f72a4b7')
+    main(payload)
+    # dynamo_lambda_streams_setup("trigger-perf", "validation-lmd", 133132736141)
+    # get_lambda_logs("pg-recv", 1713886807.586133, 'f72a4b7')
     # latencies = calc_latency("./logs/write-lmd_logs.csv", "./logs/read-lmd_logs.csv", 'e41e876')
     # print(latencies)
     # gen_box_plot(latencies, "b8396a3", [10, 20, 40, 80, 120, 160])

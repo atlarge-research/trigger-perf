@@ -4,17 +4,30 @@ import hashlib
 import os
 import time
 
-def ds_write_lmd_func(key, data, ds, e_id, run_id, event_iter):
-        client = boto3.client('lambda')
-        payload = [key, data, e_id, run_id, ds, event_iter]
-        response = client.invoke(
-        FunctionName='write-lmd',
-        InvocationType='Event',
-        Payload=json.dumps(payload)
-        )
-        if response.get('FunctionError'):
-            print(f"Error invoking write-lmd: {response.get('FunctionError')}")
-        return response
+def ds_write_lmd_func(key, data, ds, e_id, run_id, event_iter, validation_run):
+        if validation_run == "yes":
+            client = boto3.client('lambda')
+            payload = [key, data, e_id, run_id, ds, event_iter]
+            response = client.invoke(
+            FunctionName='validation-lmd',
+            InvocationType='Event',
+            Payload=json.dumps(payload)
+            )
+            if response.get('FunctionError'):
+                print(f"Error invoking write-lmd: {response.get('FunctionError')}")
+            return response
+
+        else:
+            client = boto3.client('lambda')
+            payload = [key, data, e_id, run_id, ds, event_iter]
+            response = client.invoke(
+            FunctionName='write-lmd',
+            InvocationType='Event',
+            Payload=json.dumps(payload)
+            )
+            if response.get('FunctionError'):
+                print(f"Error invoking write-lmd: {response.get('FunctionError')}")
+            return response
     
     
 def get_size(input_string):
@@ -55,26 +68,16 @@ def gen_prefix_key(ksize: int, id: str):
 
 def lambda_handler(event, context):
     
-    # Get w-k-r input
     print('EVENT: ', event)
     run_id = event.get('run_id')
     data_store = event.get('data_store')
     num_keys = int(event.get('num_keys'))
-    ksize_start = int(event.get('ksize_start'))
-    ksize_end = int(event.get('ksize_end'))
-    kjumps = int(event.get('kjumps'))
     vsize = int(event.get('vsize'))
-    num_readers = int(event.get('num_readers'))
     iters = int(event.get('iters'))
+    validation_run = event.get('validation_run')
     
     # Get key sizes required
     key_sizes_to_write = json.loads(event.get('ksizes_list')) # when ksizes are passed as list in config
-    # key_sizes_to_write = []
-    # temp = ksize_start
-
-    # while temp < ksize_end:
-    #     key_sizes_to_write.append(temp)
-    #     temp += kjumps
         
     # Key and data generation
     for i in key_sizes_to_write:
@@ -88,7 +91,7 @@ def lambda_handler(event, context):
             # Invoke send/write function
             print(f"INVOKING KEY SIZE: {i}\n")
     
-            resp = ds_write_lmd_func(key,data, data_store,e_id,run_id, j)
+            resp = ds_write_lmd_func(key,data, data_store,e_id,run_id, j, validation_run)
             time.sleep(1)
 
     return {

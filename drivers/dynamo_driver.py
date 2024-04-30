@@ -59,8 +59,8 @@ def dynamo_lambda_streams_setup(table_name: str, fn_name: str, acc_id):
 def dynamo_put_item(table_name, key, value, region='us-east-1'):
     dynamodb = boto3.client('dynamodb', region_name=region)
     item = {
-    'id': {'S': key},     # Assuming 'id' is the primary key of type String
-    'value': {'S': value}  # Assuming 'value' is an attribute of type String
+    'id': {'S': key},     
+    'value': {'S': value}  
     }
 
     try:

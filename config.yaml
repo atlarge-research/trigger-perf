@@ -1,6 +1,6 @@
 
-## other inputs: "s3", "etcd", "dynamo", "s3Express", "Aurora"
-data_store: "aurora"
+## other inputs: "s3", "etcd", "dynamo", "aurora"
+data_store: "dynamo"
 aws_acc_id: 133132736141
 region: us-east-1
 # Sacheen acc =133132736141
@@ -17,6 +17,7 @@ value:
   
 num_readers: "1"
 
-num_iters: "65" # to be sent to intial-lmd
+num_iters: "200" # to be sent to intial-lmd
 
+validation_run: "yes" # Set to yes for a validation run
 # write code to verify and error check config inputs

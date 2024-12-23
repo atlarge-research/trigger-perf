@@ -1,6 +1,6 @@
 # TriggerPerf
 
-TriggerPerf is a custom benchmarking tool designed to evaluate the performance of datastore triggers. It currently supports three AWS datastores: S3 Standard, DynamoDB, and AuroraDB. The tool automates trigger setup and configuration, leveraging three Lambda functions—Setup, Write, and Receiv to create a testbed for benchmarking various trigger mechanisms.
+TriggerPerf is a custom benchmarking tool designed to evaluate the performance of datastore triggers. It currently supports three AWS datastores: S3 Standard, DynamoDB, and AuroraDB. The tool automates trigger setup and configuration, leveraging three Lambda function: Setup, Write, and Receive to create a testbed for benchmarking various trigger mechanisms.
 
 ## **Usage**
 
@@ -31,8 +31,17 @@ python teardown.py
 ```
 
 ### **4. Adding a Datastore**
-To add a datastore, users need to add a driver file to the `/drivers` folders with relevant functions similar to current systems. A few functions also need to be added to the file at `./aws_lambdas/lambdas/initial-lmd.py`
+To add support for a new datastore in TriggerPerf:
 
+1. **Create a Driver File**: 
+   - Add a new driver file in the `/drivers` directory.
+   - Include relevant functions that align with the functionality of existing datastore systems.
+
+2. **Modify Lambda Function**: 
+   - Update the file located at `./aws_lambdas/lambdas/initial-lmd.py`.
+   - Add the necessary functions to handle the new datastore.
+
+Ensure the new additions follow the structure and conventions of the current implementation to maintain consistency and compatibility.
 
 
 

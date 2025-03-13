@@ -9,6 +9,7 @@ All configurations are managed via the `config.yaml` file. This includes:
 - **Datastore Parameters**: Define the datastore type and its specific settings.
 - **Experiment Details**: Specify key-value sizes, throughput, and other benchmarking parameters.
 - **AWS Credentials**: Include the necessary access keys and region information.
+- Define experiment details and AWS credentials in `config.yaml`.
 
 ### **2. Setup & Run**
 Run the `setup.py` script to initialize and configure the benchmarking environment:
@@ -36,6 +37,7 @@ To add support for a new datastore in TriggerPerf:
 1. **Create a Driver File**: 
    - Add a new driver file in the `/drivers` directory.
    - Include relevant functions that align with the functionality of existing datastore systems.
+   - The driver file should include functions to setup te target system and supporting functions to perform CRUD operations.
 
 2. **Modify Lambda Function**: 
    - Update the file located at `./aws_lambdas/lambdas/initial-lmd.py`.

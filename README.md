@@ -1,6 +1,6 @@
 # TriggerPerf
 
-TriggerPerf is a custom benchmarking tool designed to evaluate the performance of datastore triggers. It currently supports three AWS datastores: S3 Standard, DynamoDB, and AuroraDB. The tool automates trigger setup and configuration, leveraging three Lambda function: Setup, Write, and Receive to create a testbed for benchmarking various trigger mechanisms.
+TriggerPerf is a custom benchmarking tool designed to evaluate the performance of datastore triggers. It currently supports three AWS datastores: S3 Standard, DynamoDB, and AuroraDB. The tool automates trigger setup and configuration, leveraging three Lambda function: Setup, Write, and Receive to create a testbed for benchmarking various trigger mechanisms. Currently TriggerPerf supports S3 Event Notifications, DynamoDB Streams and AuroraDB UDF triggers.
 
 ## **Usage**
 
@@ -10,6 +10,12 @@ All configurations are managed via the `config.yaml` file. This includes:
 - **Experiment Details**: Specify key-value sizes, throughput, and other benchmarking parameters.
 - **AWS Credentials**: Include the necessary access keys and region information.
 - Define experiment details and AWS credentials in `config.yaml`.
+```bash
+## other inputs: "s3", "etcd", "dynamo", "aurora"
+data_store: "dynamo"
+aws_acc_id: xxxxxxxxxx
+region: us-east-1 
+```
 
 ### **2. Setup & Run**
 Run the `setup.py` script to initialize and configure the benchmarking environment:

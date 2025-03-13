@@ -113,7 +113,7 @@ def create_lambda_trigger(database_name, table_name, lambda_arn, region_name='us
                 'message', 'Hello from Postgres!',
                 'new_row', NEW
             )
-        )::json);
+        )::json, 'Event');
         RETURN NULL;
     END;
     $$ LANGUAGE plpgsql;
@@ -131,20 +131,23 @@ def create_lambda_trigger(database_name, table_name, lambda_arn, region_name='us
     # Execute the SQL commands in the database
     try:
         response = rds_client.execute_statement(
-            resourceArn="arn:aws:rds:us-east-1:133132736141:cluster:aurora-pg",
-            secretArn="arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-69e731ac-3d92-4bd0-8107-cff996d47a37-YRzaMp",
+            resourceArn="arn:aws:rds:us-east-1:133132736141:cluster:aurora-pg-tp",
+            # secretArn="arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-69e731ac-3d92-4bd0-8107-cff996d47a37-YRzaMp",
+            secretArn="arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-1dfab291-2fc0-4f06-815a-96154cc136db-xV3gJN",
             database=database_name,
             sql=aws_extension_sql
         )
         response = rds_client.execute_statement(
-            resourceArn="arn:aws:rds:us-east-1:133132736141:cluster:aurora-pg",
-            secretArn="arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-69e731ac-3d92-4bd0-8107-cff996d47a37-YRzaMp",
+            resourceArn="arn:aws:rds:us-east-1:133132736141:cluster:aurora-pg-tp",
+            # secretArn="arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-69e731ac-3d92-4bd0-8107-cff996d47a37-YRzaMp",
+            secretArn="arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-1dfab291-2fc0-4f06-815a-96154cc136db-xV3gJN",
             database=database_name,
             sql=function_sql
         )
         response = rds_client.execute_statement(
-            resourceArn="arn:aws:rds:us-east-1:133132736141:cluster:aurora-pg",
-            secretArn="arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-69e731ac-3d92-4bd0-8107-cff996d47a37-YRzaMp",
+            resourceArn="arn:aws:rds:us-east-1:133132736141:cluster:aurora-pg-tp",
+            # secretArn="arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-69e731ac-3d92-4bd0-8107-cff996d47a37-YRzaMp",
+            secretArn="arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-1dfab291-2fc0-4f06-815a-96154cc136db-xV3gJN",
             database=database_name,
             sql=trigger_sql
         )
@@ -164,15 +167,23 @@ def aurora_latency_main_runner(cluster_arn, secret_arn, db_name, table_name, ite
 
 
 if __name__ == '__main__':
-    cluster_arn = 'arn:aws:rds:us-east-1:133132736141:cluster:aurora-pg'
-    secret_arn = 'arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-69e731ac-3d92-4bd0-8107-cff996d47a37-YRzaMp'
+    # cluster_arn = 'arn:aws:rds:us-east-1:133132736141:cluster:aurora-pg'
+    # secret_arn = 'arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-69e731ac-3d92-4bd0-8107-cff996d47a37-YRzaMp'
+    # db_name = "postgres"
+    # table_name = 'kv_table'
+    # lambda_arn = 'arn:aws:lambda:us-east-1:133132736141:function:pg-recv'
+
+
+    ## For Serverless
+    cluster_arn = 'arn:aws:rds:us-east-1:133132736141:cluster:aurora-pg-tp'
+    secret_arn = 'arn:aws:secretsmanager:us-east-1:133132736141:secret:rds!cluster-1dfab291-2fc0-4f06-815a-96154cc136db-xV3gJN'
     db_name = "postgres"
     table_name = 'kv_table'
     lambda_arn = 'arn:aws:lambda:us-east-1:133132736141:function:pg-recv'
-    create_lambda_trigger(db_name, table_name, lambda_arn, region_name='us-east-1')
+    # create_lambda_trigger(db_name, table_name, lambda_arn, region_name='us-east-1')
     # aurora_create_table(cluster_arn, secret_arn, db_name, table_name)
     # aurora_delete_table(cluster_arn, secret_arn, db_name, table_name, region='us-east-1')
-    # aurora_insert_data(cluster_arn, secret_arn, db_name, table_name, "test-key", "test-val")
+    aurora_insert_data(cluster_arn, secret_arn, db_name, table_name, "test-key", "test-val-checky")
     # aurora_latency_main_runner(cluster_arn, secret_arn, db_name, table_name, 3)
 
 

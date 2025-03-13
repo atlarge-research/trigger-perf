@@ -13,14 +13,14 @@ def setup_services(acc_id, ds, region): # Set up lambda functions & data store
     # create_aws_lambda_role('myLambdaRole')
     # time.sleep(7)
 
-    # Initial lambda setup
-    # create_lambda_function(acc_id, "initial-lmd")
+    #Initial lambda setup
+    create_lambda_function(acc_id, "initial-lmd")
 
-    # # Write lambda setup
-    # create_lambda_function(acc_id, "write-lmd")
+    # Write lambda setup
+    create_lambda_function(acc_id, "write-lmd")
 
-    # # Read lambda setup
-    # create_lambda_function(acc_id, "read-lmd")
+    # Read lambda setup
+    create_lambda_function(acc_id, "read-lmd")
 
     # Datastore setup
     try:

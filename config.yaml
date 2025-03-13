@@ -17,7 +17,7 @@ value:
   
 num_readers: "1"
 
-num_iters: "200" # to be sent to intial-lmd
+num_iters: "10" # to be sent to intial-lmd
 
 validation_run: "yes" # Set to yes for a validation run
 # write code to verify and error check config inputs

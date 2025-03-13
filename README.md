@@ -24,7 +24,10 @@ python main.py
 ```
 
 ### **3. Logs & Teardown**
-- **Logs**: Filtered logs are automatically saved to the `/logs` directory for later analysis.
+- **Logs**: Filtered logs are automatically saved to the `/logs` directory for later analysis. Run the `/proc_logs/latency_data_processing.ipynb` to generate graphs.
+```bash
+python teardown.py 
+```
 - **Teardown**: To remove all datastore and trigger configurations from your AWS account, run the `teardown.py` script:
 
 ```bash

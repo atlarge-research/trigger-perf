@@ -40,19 +40,27 @@ python teardown.py
 python teardown.py 
 ```
 
-### **4. Adding a Datastore**
-To add support for a new datastore in TriggerPerf:
+### **4. Extending TriggerPerf: Adding a New Datastore**
 
-1. **Create a Driver File**: 
-   - Add a new driver file in the `/drivers` directory.
-   - Include relevant functions that align with the functionality of existing datastore systems.
-   - The driver file should include functions to setup te target system and supporting functions to perform CRUD operations.
+To add support for a new datastore, follow these steps:
 
-2. **Modify Lambda Function**: 
-   - Update the file located at `./aws_lambdas/lambdas/initial-lmd.py`.
-   - Add the necessary functions to handle the new datastore.
+### **Step 1: Create a Driver File**
+- Add a new driver file inside the `/drivers` directory.
+- Implement necessary functions that align with the functionality of existing datastore integrations.
+- The driver should include functions for:
+  - **Setting up the target datastore.**
+  - **Performing CRUD operations.**
 
-Ensure the new additions follow the structure and conventions of the current implementation to maintain consistency and compatibility.
+### **Step 2: Modify Lambda Functions**
+- **Update `./aws_lambdas/lambdas/initial-lmd.py`**:  
+  Add functions required to connect and interact with the new datastore.
+- **Update `./aws_lambdas/lambdas/recv-lmd.py`**:  
+  Implement functions to handle the datastore's trigger mechanism.
+
+### **Step 3: Maintain Consistency & Compatibility**
+- Ensure the new integration adheres to TriggerPerf’s existing structure and conventions.
+- This maintains seamless compatibility with the benchmarking framework.
+
 
 
 
